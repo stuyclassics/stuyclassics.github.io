@@ -142,7 +142,20 @@ summary {
     font-weight: bold;
     color: #4b0082;
     cursor: pointer;
+    text-align: center;
+    padding: 0.5em;
 }
+
+.win-list {
+    margin-top: 0.5em;
+    padding-left: 1em;
+    text-align: left;
+}
+
+.win-list p {
+    margin: 0.4em 0;
+}
+
 
 details ul {
     margin-top: 0.5em;
