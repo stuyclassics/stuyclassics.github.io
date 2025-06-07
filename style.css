@@ -1,0 +1,61 @@
+body {
+    font-family: Georgia, serif;
+    background-color: #f7f5f0;
+    margin: 0;
+    padding: 0;
+    color: #2c2c2c;
+}
+
+nav {
+    background-color: #4b0082;
+    padding: 1em;
+}
+
+nav ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+}
+
+nav ul li {
+    margin-right: 20px;
+}
+
+nav ul li a {
+    color: #ffd700;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+nav ul li a:hover {
+    text-decoration: underline;
+}
+
+header {
+    padding: 2em;
+    background-color: #6a0dad;
+    color: white;
+    text-align: center;
+}
+
+main {
+    padding: 2em;
+}
+
+section {
+    margin-bottom: 2em;
+}
+
+.study-section h3 {
+    color: #6a0dad;
+}
+
+.study-section ul {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+.study-section ul li {
+    margin-bottom: 10px;
+}
