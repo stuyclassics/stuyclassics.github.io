@@ -1,14 +1,21 @@
+
+* {
+    box-sizing: border-box;
+}
+
 body {
-    font-family: Georgia, serif;
-    background-color: #f7f5f0;
+    font-family: 'Georgia', serif;
+    background-color: #fdfcfb;
     margin: 0;
     padding: 0;
     color: #2c2c2c;
+    line-height: 1.6;
 }
 
 nav {
     background-color: #4b0082;
-    padding: 1em;
+    padding: 1em 2em;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 nav ul {
@@ -16,39 +23,59 @@ nav ul {
     margin: 0;
     padding: 0;
     display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
 }
 
 nav ul li {
-    margin-right: 20px;
+    margin: 0 15px;
 }
 
 nav ul li a {
     color: #ffd700;
     text-decoration: none;
     font-weight: bold;
+    font-size: 1.1em;
+    transition: color 0.3s ease;
 }
 
 nav ul li a:hover {
+    color: #ffffff;
     text-decoration: underline;
 }
 
 header {
-    padding: 2em;
-    background-color: #6a0dad;
+    padding: 3em 2em;
+    background: linear-gradient(to right, #6a0dad, #4b0082);
     color: white;
     text-align: center;
+    border-bottom: 5px solid #ffd700;
+}
+
+header h1 {
+    font-size: 2.5em;
+    margin-bottom: 0.3em;
 }
 
 main {
     padding: 2em;
+    max-width: 900px;
+    margin: auto;
 }
 
 section {
-    margin-bottom: 2em;
+    margin-bottom: 3em;
+    padding: 1.5em;
+    background-color: #ffffff;
+    border-left: 5px solid #6a0dad;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
 }
 
 .study-section h3 {
-    color: #6a0dad;
+    color: #4b0082;
+    border-bottom: 2px solid #ffd700;
+    padding-bottom: 0.3em;
+    margin-bottom: 1em;
 }
 
 .study-section ul {
@@ -58,4 +85,43 @@ section {
 
 .study-section ul li {
     margin-bottom: 10px;
+    padding-left: 1em;
+    position: relative;
 }
+
+.study-section ul li::before {
+    content: "»";
+    position: absolute;
+    left: 0;
+    color: #6a0dad;
+}
+
+a {
+    color: #4b0082;
+    text-decoration: none;
+}
+
+a:hover {
+    color: #2c2c2c;
+    text-decoration: underline;
+}
+
+@media (max-width: 600px) {
+    nav ul {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    nav ul li {
+        margin: 10px 0;
+    }
+
+    header h1 {
+        font-size: 2em;
+    }
+
+    main {
+        padding: 1em;
+    }
+}
+
