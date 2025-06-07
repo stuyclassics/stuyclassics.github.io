@@ -1,15 +1,15 @@
-
 * {
     box-sizing: border-box;
 }
 
 body {
-    font-family: 'Georgia', serif;
+    font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif;
     background-color: #fdfcfb;
     margin: 0;
     padding: 0;
     color: #2c2c2c;
     line-height: 1.6;
+    text-align: center;
 }
 
 nav {
@@ -48,7 +48,6 @@ header {
     padding: 3em 2em;
     background: linear-gradient(to right, #6a0dad, #4b0082);
     color: white;
-    text-align: center;
     border-bottom: 5px solid #ffd700;
 }
 
@@ -61,6 +60,7 @@ main {
     padding: 2em;
     max-width: 900px;
     margin: auto;
+    text-align: center;
 }
 
 section {
@@ -81,6 +81,8 @@ section {
 .study-section ul {
     list-style-type: none;
     padding-left: 0;
+    text-align: left;
+    display: inline-block;
 }
 
 .study-section ul li {
@@ -97,8 +99,9 @@ section {
 }
 
 a {
-    color: #4b0082;
+    color: #800000; /* deep Roman red for links */
     text-decoration: none;
+    font-weight: bold;
 }
 
 a:hover {
@@ -124,4 +127,3 @@ a:hover {
         padding: 1em;
     }
 }
-
