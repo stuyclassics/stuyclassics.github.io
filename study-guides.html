@@ -1,73 +1,56 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="imperium">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <title>Study Guides</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <!-- Same font pairing -->
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <!-- Classical inscription font for headings -->
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="bg-grid"></div>
-  <nav class="nav glass">
-    <div class="nav__wrap">
-      <a class="brand" href="index.html">
-        <span class="brand__crest">SC</span>
-        <span class="brand__name">Stuy Classics</span>
-      </a>
-      <ul class="nav__links">
-        <li><a class="link" href="index.html">Home</a></li>
-        <li><a class="link" href="study-guides.html" aria-current="page">Study Guides</a></li>
-      </ul>
-    </div>
-    <div class="nav__glow"></div>
+  <nav>
+    <ul>
+      <li><a href="index.html">Home</a></li>
+      <li><a href="study-guides.html">Study Guides</a></li>
+    </ul>
   </nav>
 
-  <header class="hero hero--compact">
-    <div class="hero__inner">
-      <h1 class="hero__title">Certamen Study Guides</h1>
-      <p class="hero__sub">Organized resources by category — links coming soon!</p>
-      <div class="hero__shine"></div>
-    </div>
+  <header>
+    <h1>Certamen Study Guides</h1>
+    <p>Organized resources by category — links coming soon!</p>
   </header>
 
-  <main class="container">
-    <section class="card glass">
-      <h2 class="card__title">Categories</h2>
-      <div class="grid grid--2 grid--auto">
-        <details class="accordion study" data-hover>
-          <summary>Roman History</summary>
-          <ul class="fancy-list">
-            <li>[Link placeholder]</li>
-          </ul>
-        </details>
+  <main>
+    <section class="study-section">
+      <h3>Roman History</h3>
+      <ul>
+        <li>[Link placeholder]</li>
+      </ul>
+    </section>
 
-        <details class="accordion study" data-hover>
-          <summary>Mythology</summary>
-          <ul class="fancy-list">
-            <li>[Link placeholder]</li>
-          </ul>
-        </details>
+    <section class="study-section">
+      <h3>Mythology</h3>
+      <ul>
+        <li>[Link placeholder]</li>
+      </ul>
+    </section>
 
-        <details class="accordion study" data-hover>
-          <summary>Latin Language &amp; Grammar</summary>
-          <ul class="fancy-list">
-            <li>[Link placeholder]</li>
-          </ul>
-        </details>
+    <section class="study-section">
+      <h3>Latin Language &amp; Grammar</h3>
+      <ul>
+        <li>[Link placeholder]</li>
+      </ul>
+    </section>
 
-        <details class="accordion study" data-hover>
-          <summary>PMAQ</summary>
-          <ul class="fancy-list">
-            <li>[Link placeholder]</li>
-          </ul>
-        </details>
-      </div>
+    <section class="study-section">
+      <h3>PMAQ</h3>
+      <ul>
+        <li>[Link placeholder]</li>
+      </ul>
     </section>
   </main>
 
-  <script src="ui.js" defer></script>
+  <script src="hover-open.js" defer></script>
 </body>
 </html>
