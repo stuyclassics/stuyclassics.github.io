@@ -1,59 +1,80 @@
-<!---millan bisegna--->
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="imperium">
 <head>
-    <meta charset="UTF-8">
-    <title>Stuy Classics Club</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <title>Stuy Classics Club</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- Futuristic serif+sans pairing -->
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-    <nav>
-        <ul>
-            <li><a href="index.html">Home</a></li>
-            <li><a href="study-guides.html">Study Guides</a></li>
-        </ul>
-    </nav>
-    <header>
-        <h1>Welcome to the Stuyvesant Classics Club</h1>
-        <p>Pro Scientia Atque Sapientia</p>
-    </header>
-    <main>
-        <section>
-            <h2>Our Community</h2>
-            <p><a href="https://epsilon.stuysu.org/stuyclassicscertamen">Visit our Epsilon</a></p>
-            <p><a href="https://www.instagram.com/stuyclassics?igsh=ejA2OGU5bThoNHUy">Follow us on Instagram</a></p>
-        </section>
+  <div class="bg-grid"></div>
+  <nav class="nav glass">
+    <div class="nav__wrap">
+      <a class="brand" href="index.html">
+        <span class="brand__crest">SC</span>
+        <span class="brand__name">Stuy Classics</span>
+      </a>
+      <ul class="nav__links">
+        <li><a class="link" href="index.html" aria-current="page">Home</a></li>
+        <li><a class="link" href="study-guides.html">Study Guides</a></li>
+      </ul>
+    </div>
+    <div class="nav__glow"></div>
+  </nav>
 
-        <section>
-            <h2>Past Certamina</h2>
+  <header class="hero">
+    <div class="hero__inner">
+      <h1 class="hero__title">Welcome to the Stuyvesant Classics Club</h1>
+      <p class="hero__sub">Pro Scientia Atque Sapientia</p>
+      <div class="hero__shine"></div>
+    </div>
+  </header>
 
-            <details>
-                <summary><strong>2025</strong></summary>
-                <div class="win-list">
-                    <p>1st Place – Stony Brook (Advanced Division)</p>
-                    <p>1st Place – Stony Brook (Intermediate Division)</p>
-                    <p>3rd Place – Harvard (Advanced Division)</p>
-                    <p>3rd Place – Princeton (Advanced Division)</p>
-                </div>
-            </details>
+  <main class="container">
+    <section class="card glass">
+      <h2 class="card__title">Our Community</h2>
+      <div class="grid grid--2">
+        <a class="chip" href="https://epsilon.stuysu.org/stuyclassicscertamen" target="_blank" rel="noopener">Visit our Epsilon</a>
+        <a class="chip" href="https://www.instagram.com/stuyclassics?igsh=ejA2OGU5bThoNHUy" target="_blank" rel="noopener">Follow us on Instagram</a>
+      </div>
+    </section>
 
-            <details>
-                <summary><strong>2024</strong></summary>
-                <div class="win-list">
-                    <p>1st Place – Stony Brook (Advanced Division)</p>
-                    <p>1st Place – Stony Brook (Intermediate Division)</p>
-                    <p>1st Place – Stony Brook (Novice Division)</p>
-                    <p>2nd Place – UPenn (Intermediate Division)</p>
-                </div>
-            </details>
+    <section class="card glass">
+      <h2 class="card__title">Past Certamina</h2>
 
-            <details>
-                <summary><strong>2023</strong></summary>
-                <div class="win-list">
-                    <p>1st Place – UPenn (Novice Division)</p>
-                </div>
-            </details>
-        </section>
-    </main>
+      <!-- Hover-to-open details (also keyboard/click accessible) -->
+      <details class="accordion" data-hover>
+        <summary><strong>2025</strong></summary>
+        <div class="win-list">
+          <p>1st Place – Stony Brook (Advanced Division)</p>
+          <p>1st Place – Stony Brook (Intermediate Division)</p>
+          <p>3rd Place – Harvard (Advanced Division)</p>
+          <p>3rd Place – Princeton (Advanced Division)</p>
+        </div>
+      </details>
+
+      <details class="accordion" data-hover>
+        <summary><strong>2024</strong></summary>
+        <div class="win-list">
+          <p>1st Place – Stony Brook (Advanced Division)</p>
+          <p>1st Place – Stony Brook (Intermediate Division)</p>
+          <p>1st Place – Stony Brook (Novice Division)</p>
+          <p>2nd Place – UPenn (Intermediate Division)</p>
+        </div>
+      </details>
+
+      <details class="accordion" data-hover>
+        <summary><strong>2023</strong></summary>
+        <div class="win-list">
+          <p>1st Place – UPenn (Novice Division)</p>
+        </div>
+      </details>
+    </section>
+  </main>
+
+  <script src="ui.js" defer></script>
 </body>
 </html>
