@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Certamen Game</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <h1>⚔️ Certamen Webgame ⚔️</h1>
+
+  <div id="setup">
+    <h3>Select Level</h3>
+    <label><input type="radio" name="level" value="novice" checked> Novice</label>
+    <label><input type="radio" name="level" value="intermediate"> Intermediate</label>
+    <label><input type="radio" name="level" value="advanced"> Advanced</label>
+
+    <h3>Select Categories</h3>
+    <label><input type="checkbox" value="literature"> Literature</label>
+    <label><input type="checkbox" value="language"> Language</label>
+    <label><input type="checkbox" value="history"> History</label>
+    <label><input type="checkbox" value="culture"> Culture</label>
+    <label><input type="checkbox" value="mythology"> Mythology</label>
+
+    <br><br>
+    <button id="start">Start Game</button>
+  </div>
+
+  <div id="game" style="display:none;">
+    <div id="question-box"></div>
+    <button id="buzz">Buzz!</button>
+    <button id="skip">Skip</button>
+    <p>Timer: <span id="timer">30</span>s</p>
+
+    <div id="answer-box" style="display:none;">
+      <input type="text" id="answer" placeholder="Your answer">
+      <button id="submit-answer">Submit</button>
+    </div>
+  </div>
+
+  <script src="/static/script.js"></script>
+</body>
+</html>
