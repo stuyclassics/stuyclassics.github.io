@@ -1,0 +1,23 @@
+body {
+  font-family: Arial, sans-serif;
+  text-align: center;
+  background: #faf8f3;
+}
+
+h1 {
+  color: #6b2e2e;
+}
+
+#question-box {
+  font-size: 20px;
+  margin: 20px;
+  min-height: 60px;
+}
+
+button {
+  margin: 5px;
+  padding: 10px;
+  font-size: 16px;
+  border-radius: 6px;
+  cursor: pointer;
+}
