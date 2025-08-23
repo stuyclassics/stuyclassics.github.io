@@ -6,17 +6,49 @@ let interval;
 let level = "novice";
 let categories = [];
 
-document.getElementById("start").addEventListener("click", () => {
-  // get selected level
-  level = document.querySelector('input[name="level"]:checked').value;
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("start").addEventListener("click", () => {
+    // get selected level
+    level = document.querySelector('input[name="level"]:checked').value;
 
-  // get selected categories
-  categories = Array.from(document.querySelectorAll('input[type="checkbox"]:checked'))
-    .map(cb => cb.value);
+    // get selected categories
+    categories = Array.from(document.querySelectorAll('input[type="checkbox"]:checked'))
+      .map(cb => cb.value);
 
-  document.getElementById("setup").style.display = "none";
-  document.getElementById("game").style.display = "block";
-  fetchQuestion();
+    // switch to game view
+    document.getElementById("setup").style.display = "none";
+    document.getElementById("game").style.display = "block";
+
+    // start first question
+    fetchQuestion();
+  });
+
+  document.getElementById("buzz").addEventListener("click", () => {
+    clearInterval(interval);
+    document.getElementById("answer-box").style.display = "block";
+  });
+
+  document.getElementById("submit-answer").addEventListener("click", async () => {
+    let answer = document.getElementById("answer").value;
+    let res = await fetch("/submit_answer", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({answer: answer, correct: currentQuestion.answer})
+    });
+    let data = await res.json();
+
+    if (data.result === "correct") {
+      alert("✅ Correct!");
+      fetchQuestion();
+    } else {
+      alert("❌ Wrong! Keep listening...");
+      readNextWord();
+    }
+    document.getElementById("answer-box").style.display = "none";
+    document.getElementById("answer").value = "";
+  });
+
+  document.getElementById("skip").addEventListener("click", fetchQuestion);
 });
 
 async function fetchQuestion() {
@@ -54,28 +86,3 @@ function startTimer() {
     }
   }, 1000);
 }
-
-document.getElementById("buzz").addEventListener("click", () => {
-  clearInterval(interval);
-  document.getElementById("answer-box").style.display = "block";
-});
-
-document.getElementById("submit-answer").addEventListener("click", async () => {
-  let answer = document.getElementById("answer").value;
-  let res = await fetch("/submit_answer", {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({answer: answer, correct: currentQuestion.answer})
-  });
-  let data = await res.json();
-
-  if (data.result === "correct") {
-    alert("✅ Correct!");
-    fetchQuestion();
-  } else {
-    alert("❌ Wrong! Keep listening...");
-    readNextWord();
-  }
-});
-
-document.getElementById("skip").addEventListener("click", fetchQuestion);
