@@ -23,6 +23,7 @@ function backToSetup() {
   document.getElementById("answer").value = "";
   document.getElementById("answer-box").style.display = "none";
   setMessage("");
+  hideTimer();
 }
 
 async function startGame() {
@@ -75,7 +76,7 @@ function nextQuestion() {
 
   currentQuestion = questionPool[Math.floor(Math.random() * questionPool.length)];
 
-  // Split by spaces only
+  // Split by spaces
   words = currentQuestion.question.split(" ");
   wordIndex = 0;
   readingDone = false;
@@ -84,6 +85,7 @@ function nextQuestion() {
   document.getElementById("answer").value = "";
   document.getElementById("answer-box").style.display = "none";
   setMessage("");
+  hideTimer();
 
   readNextWord();
 }
@@ -91,7 +93,6 @@ function nextQuestion() {
 function readNextWord() {
   if (wordIndex < words.length) {
     let word = words[wordIndex];
-    // Always add a trailing space after each word
     document.getElementById("question-box").innerText += word + " ";
     wordIndex++;
     readingTimeout = setTimeout(readNextWord, 700);
@@ -124,13 +125,20 @@ function showAnswer() {
 function startTimer(seconds) {
   if (timerInterval) return;
   timer = seconds;
+  showTimer();
+  updateTimerUI();
   timerInterval = setInterval(() => {
     timer--;
+    updateTimerUI();
     if (timer <= 0) {
       clearAllTimers();
       showAnswer();
     }
   }, 1000);
+}
+
+function updateTimerUI() {
+  document.getElementById("timer").innerText = timer;
 }
 
 function clearAllTimers() {
@@ -142,4 +150,12 @@ function clearAllTimers() {
 
 function setMessage(msg) {
   document.getElementById("message").innerText = msg;
+}
+
+function showTimer() {
+  document.getElementById("timer-box").style.visibility = "visible";
+}
+
+function hideTimer() {
+  document.getElementById("timer-box").style.visibility = "hidden";
 }
