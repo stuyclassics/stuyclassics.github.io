@@ -1,67 +1,91 @@
+/* Layout */
+* { box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+}
+
 body {
   font-family: "Garamond", "Times New Roman", serif;
   background: #fdfcf9;
   margin: 0;
   padding: 0;
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+}
+
+/* Header */
+.topbar {
+  border-bottom: 3px solid goldenrod;
+  padding: 16px 0;
+  text-align: center;
 }
 
 h1 {
   color: #4b0082;
-  font-size: 2.5em;
-  border-bottom: 3px solid goldenrod;
-  padding: 20px;
+  font-size: 2.6em;
   margin: 0;
-  text-align: center;
+}
+
+/* Main cards */
+main {
+  display: grid;
+  grid-template-rows: auto auto;
+  gap: 16px;
+  align-content: start;
+  padding: 16px;
 }
 
 .card {
   background: #f7f3ff;
   border: 2px solid #4b0082;
   border-radius: 12px;
-  padding: 20px;
-  width: 70%;
-  max-width: 800px;
-  margin: 30px auto;
-  box-shadow: 0px 6px 12px rgba(0,0,0,0.2);
+  padding: 24px;
+  width: min(900px, 92vw);
+  margin: 0 auto;
+  box-shadow: 0px 6px 12px rgba(0,0,0,0.15);
   text-align: center;
 }
 
-#question-box {
-  font-size: 22px;
-  margin: 20px 0;
-  min-height: 60px;
-  font-weight: bold;
+/* Question + Message */
+.question {
+  font-size: 24px;
+  line-height: 1.5;
+  min-height: 70px;
   color: #2f1a47;
+  margin-bottom: 8px;
+  word-break: break-word;
 }
 
-#timer-box {
-  font-size: 20px;
-  font-weight: bold;
-  color: #b22222; /* dark red */
-  margin: 10px 0 20px 0;
-  visibility: hidden; /* hidden until started */
-}
-
-#message {
+.message {
   font-size: 18px;
   font-weight: bold;
   color: #4b0082;
-  margin: 15px 0;
-  min-height: 25px;
+  min-height: 24px;
+  margin: 8px 0 4px 0;
 }
 
+/* Timer card under the question card */
+.timer-card {
+  display: none; /* toggled by JS */
+}
+
+#timer-text {
+  font-size: 20px;
+  font-weight: bold;
+  color: #b22222; /* dark red urgency */
+}
+
+/* Controls */
 .actions {
   display: flex;
   justify-content: center;
   gap: 20px;
-  margin: 20px 0;
+  margin: 18px 0 8px 0;
 }
 
 .answer-card {
-  margin-top: 20px;
+  margin-top: 16px;
   display: flex;
   justify-content: center;
   gap: 10px;
@@ -73,10 +97,11 @@ h1 {
   border: 2px solid #4b0082;
   border-radius: 6px;
   flex: 1;
+  min-width: 260px;
 }
 
 #answer-box button {
-  padding: 10px 15px;
+  padding: 10px 16px;
   font-size: 16px;
   border-radius: 6px;
   border: none;
@@ -89,16 +114,18 @@ h1 {
   background: #daa520;
 }
 
+/* Buttons */
 button {
   margin: 5px;
   padding: 10px 18px;
   font-size: 16px;
-  border-radius: 6px;
+  border-radius: 10px;
   cursor: pointer;
   border: none;
   background: #4b0082;
   color: white;
-  transition: 0.3s;
+  transition: 0.25s ease;
+  box-shadow: 0 3px 0 rgba(75,0,130,0.35);
 }
 
 button:hover {
@@ -106,15 +133,20 @@ button:hover {
   color: #2f1a47;
 }
 
-.bottom-bar {
-  margin-top: auto;
+/* Footer */
+.bottombar {
   text-align: center;
-  padding: 20px;
+  padding: 18px 0 24px;
   background: #f7f3ff;
   border-top: 2px solid #4b0082;
 }
-
-.bottom-bar button {
+.bottombar button {
   font-size: 18px;
-  padding: 12px 20px;
+  padding: 12px 22px;
+}
+
+/* Improve spacing on small screens */
+@media (max-width: 560px) {
+  .question { font-size: 20px; }
+  #timer-text { font-size: 18px; }
 }
