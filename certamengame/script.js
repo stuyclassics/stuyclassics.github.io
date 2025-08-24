@@ -2,7 +2,7 @@ let questionPool = [];
 let currentQuestion = null;
 let words = [];
 let wordIndex = 0;
-let timer = 10;  // 10 second timer
+let timer = 10;  // 10-second answer window
 let timerInterval = null;
 let readingTimeout = null;
 let readingDone = false;
@@ -23,7 +23,6 @@ function backToSetup() {
   document.getElementById("answer").value = "";
   document.getElementById("answer-box").style.display = "none";
   setMessage("");
-  hideTimer();
 }
 
 async function startGame() {
@@ -73,7 +72,6 @@ function parseCSV(text) {
 
 function nextQuestion() {
   clearAllTimers();
-  hideTimer();
 
   currentQuestion = questionPool[Math.floor(Math.random() * questionPool.length)];
   words = currentQuestion.question.split(" ");
@@ -102,40 +100,33 @@ function readNextWord() {
 function onBuzz() {
   if (readingTimeout) clearTimeout(readingTimeout);
   if (!readingDone) {
-    // start timer immediately if buzzing early
-    startTimer(10);
+    startTimer(10); // start timer immediately if buzzing early
   }
   document.getElementById("answer-box").style.display = "block";
   document.getElementById("answer").focus();
 }
 
 function submitAnswer() {
+  showAnswer();
+}
+
+function showAnswer() {
   const correct = (currentQuestion.answer || "").trim();
   setMessage("Answer: " + correct);
   document.getElementById("answer-box").style.display = "none";
-
-  // move on after short pause
   setTimeout(nextQuestion, 2000);
 }
 
 function startTimer(seconds) {
-  if (timerInterval) return; // don’t start twice
+  if (timerInterval) return; 
   timer = seconds;
-  showTimer();
-  updateTimerUI();
   timerInterval = setInterval(() => {
     timer--;
-    updateTimerUI();
     if (timer <= 0) {
       clearAllTimers();
-      setMessage("Answer: " + currentQuestion.answer);
-      setTimeout(nextQuestion, 2000);
+      showAnswer();
     }
   }, 1000);
-}
-
-function updateTimerUI() {
-  document.getElementById("timer").innerText = timer;
 }
 
 function clearAllTimers() {
@@ -147,12 +138,4 @@ function clearAllTimers() {
 
 function setMessage(msg) {
   document.getElementById("message").innerText = msg;
-}
-
-function showTimer() {
-  document.querySelector(".timer").style.visibility = "visible";
-}
-
-function hideTimer() {
-  document.querySelector(".timer").style.visibility = "hidden";
 }
