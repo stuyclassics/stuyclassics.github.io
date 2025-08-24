@@ -7,16 +7,16 @@ body {
 }
 
 h1 {
-  color: #4b0082; /* imperial purple */
-  font-size: 3em;
-  border-bottom: 4px solid goldenrod;
+  color: #4b0082;
+  font-size: 2.5em;
+  border-bottom: 3px solid goldenrod;
   padding-bottom: 10px;
   margin-bottom: 25px;
 }
 
 h3 {
   color: #4b0082;
-  font-size: 1.6em;
+  font-size: 1.4em;
   margin-top: 20px;
 }
 
@@ -36,6 +36,14 @@ h3 {
   min-height: 60px;
   font-weight: bold;
   color: #2f1a47;
+}
+
+#message {
+  font-size: 18px;
+  font-weight: bold;
+  color: #4b0082;
+  margin: 10px;
+  min-height: 25px;
 }
 
 button {
@@ -60,4 +68,11 @@ button:hover {
   font-size: 16px;
   border: 1px solid #4b0082;
   border-radius: 5px;
+}
+
+.timer {
+  visibility: hidden; /* hidden until started */
+  font-weight: bold;
+  color: #4b0082;
+  margin-left: 15px;
 }
