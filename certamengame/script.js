@@ -2,7 +2,7 @@ let questionPool = [];
 let currentQuestion = null;
 let words = [];
 let wordIndex = 0;
-let timer = 10;  // 10-second answer window
+let timer = 10;  // 10 seconds
 let timerInterval = null;
 let readingTimeout = null;
 let readingDone = false;
@@ -54,7 +54,7 @@ async function startGame() {
     nextQuestion();
   } catch (e) {
     console.error(e);
-    setMessage("Couldn't load questions.");
+    setMessage("Couldn't load questions. Make sure your CSVs are in the same folder as index.html.");
   }
 }
 
@@ -88,21 +88,22 @@ function nextQuestion() {
 
 function readNextWord() {
   if (wordIndex < words.length) {
+    // add a space after each word
     document.getElementById("question-box").innerText += words[wordIndex] + " ";
     wordIndex++;
     readingTimeout = setTimeout(readNextWord, 700);
   } else {
     readingDone = true;
-    startTimer(10); // start 10s timer after reading finishes
+    startTimer(10);
   }
 }
 
 function onBuzz() {
   if (readingTimeout) clearTimeout(readingTimeout);
   if (!readingDone) {
-    startTimer(10); // start timer immediately if buzzing early
+    startTimer(10);
   }
-  document.getElementById("answer-box").style.display = "block";
+  document.getElementById("answer-box").style.display = "flex";
   document.getElementById("answer").focus();
 }
 
@@ -118,7 +119,7 @@ function showAnswer() {
 }
 
 function startTimer(seconds) {
-  if (timerInterval) return; 
+  if (timerInterval) return;
   timer = seconds;
   timerInterval = setInterval(() => {
     timer--;
