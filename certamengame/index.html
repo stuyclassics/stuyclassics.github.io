@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Certamen Practice</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <h1>🏛️ Certamen Practice 🏛️</h1>
+
+  <div id="setup">
+    <h3>Select Level</h3>
+    <label><input type="radio" name="level" value="novice" checked> Novice</label>
+    <label><input type="radio" name="level" value="intermediate"> Intermediate</label>
+    <label><input type="radio" name="level" value="advanced"> Advanced</label>
+
+    <h3>Select Categories</h3>
+    <label><input type="checkbox" value="literature"> Literature</label>
+    <label><input type="checkbox" value="language"> Language</label>
+    <label><input type="checkbox" value="history"> History</label>
+    <label><input type="checkbox" value="culture"> Culture</label>
+    <label><input type="checkbox" value="mythology"> Mythology</label>
+
+    <div class="actions">
+      <button id="start">Start Game</button>
+    </div>
+  </div>
+
+  <div id="game" style="display:none;">
+    <div id="question-box"></div>
+
+    <div class="actions">
+      <button id="buzz">Buzz!</button>
+      <button id="skip">Skip</button>
+      <span class="timer">Timer: <span id="timer">30</span>s</span>
+    </div>
+
+    <div id="answer-box" style="display:none;">
+      <input type="text" id="answer" placeholder="Your answer" autocomplete="off" />
+      <button id="submit-answer">Submit</button>
+    </div>
+
+    <div class="actions">
+      <button id="back">⬅ Return to Setup</button>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
