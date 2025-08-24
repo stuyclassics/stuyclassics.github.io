@@ -1,9 +1,6 @@
-/* Layout */
+/* Global layout */
 * { box-sizing: border-box; }
-
-html, body {
-  height: 100%;
-}
+html, body { height: 100%; }
 
 body {
   font-family: "Garamond", "Times New Roman", serif;
@@ -27,7 +24,7 @@ h1 {
   margin: 0;
 }
 
-/* Main cards */
+/* Main area */
 main {
   display: grid;
   grid-template-rows: auto auto;
@@ -47,7 +44,7 @@ main {
   text-align: center;
 }
 
-/* Question + Message */
+/* Question + message */
 .question {
   font-size: 24px;
   line-height: 1.5;
@@ -65,15 +62,12 @@ main {
   margin: 8px 0 4px 0;
 }
 
-/* Timer card under the question card */
-.timer-card {
-  display: none; /* toggled by JS */
-}
-
+/* Timer card (separate box under the game card) */
+.timer-card { display: none; }
 #timer-text {
   font-size: 20px;
   font-weight: bold;
-  color: #b22222; /* dark red urgency */
+  color: #b22222;
 }
 
 /* Controls */
@@ -145,7 +139,7 @@ button:hover {
   padding: 12px 22px;
 }
 
-/* Improve spacing on small screens */
+/* Small screens */
 @media (max-width: 560px) {
   .question { font-size: 20px; }
   #timer-text { font-size: 18px; }
