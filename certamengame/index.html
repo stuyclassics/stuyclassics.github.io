@@ -9,6 +9,7 @@
 <body>
   <h1>Certamen Practice</h1>
 
+  <!-- Setup Screen -->
   <div id="setup">
     <h3>Select Level</h3>
     <label><input type="radio" name="level" value="novice" checked> Novice</label>
@@ -27,6 +28,7 @@
     </div>
   </div>
 
+  <!-- Game Screen -->
   <div id="game" style="display:none;">
     <div id="question-box"></div>
     <div id="message"></div>
@@ -34,7 +36,6 @@
     <div class="actions">
       <button id="buzz">Buzz</button>
       <button id="skip">Skip</button>
-      <span class="timer">Timer: <span id="timer">10</span>s</span>
     </div>
 
     <div id="answer-box" style="display:none;">
@@ -42,7 +43,7 @@
       <button id="submit-answer">Submit</button>
     </div>
 
-    <div class="actions">
+    <div class="bottom-actions">
       <button id="back">Return to Setup</button>
     </div>
   </div>
