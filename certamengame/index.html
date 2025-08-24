@@ -7,51 +7,56 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <h1>Certamen Practice</h1>
+  <header class="topbar">
+    <h1>Certamen Practice</h1>
+  </header>
 
   <!-- Setup Screen -->
-  <div id="setup" class="card">
-    <h3>Select Level</h3>
-    <label><input type="radio" name="level" value="novice" checked> Novice</label>
-    <label><input type="radio" name="level" value="intermediate"> Intermediate</label>
-    <label><input type="radio" name="level" value="advanced"> Advanced</label>
+  <main>
+    <section id="setup" class="card">
+      <h3>Select Level</h3>
+      <label><input type="radio" name="level" value="novice" checked> Novice</label>
+      <label><input type="radio" name="level" value="intermediate"> Intermediate</label>
+      <label><input type="radio" name="level" value="advanced"> Advanced</label>
 
-    <h3>Select Categories</h3>
-    <label><input type="checkbox" value="literature"> Literature</label>
-    <label><input type="checkbox" value="language"> Language</label>
-    <label><input type="checkbox" value="history"> History</label>
-    <label><input type="checkbox" value="culture"> Culture</label>
-    <label><input type="checkbox" value="mythology"> Mythology</label>
+      <h3>Select Categories</h3>
+      <label><input type="checkbox" value="literature"> Literature</label>
+      <label><input type="checkbox" value="language"> Language</label>
+      <label><input type="checkbox" value="history"> History</label>
+      <label><input type="checkbox" value="culture"> Culture</label>
+      <label><input type="checkbox" value="mythology"> Mythology</label>
 
-    <div class="actions">
-      <button id="start">Start Game</button>
-    </div>
-  </div>
+      <div class="actions">
+        <button id="start">Start Game</button>
+      </div>
+    </section>
 
-  <!-- Game Screen -->
-  <div id="game" style="display:none;" class="card">
-    <div id="question-box"></div>
+    <!-- Game Screen -->
+    <section id="game" class="card" style="display:none;">
+      <div id="question-box" class="question"></div>
+      <div id="message" class="message"></div>
 
-    <!-- Timer directly under the question -->
-    <div id="timer-box">Time Left: <span id="timer">10</span>s</div>
+      <div class="actions">
+        <button id="buzz">Buzz</button>
+        <button id="skip">Skip</button>
+      </div>
 
-    <div id="message"></div>
+      <div id="answer-box" class="answer-card" style="display:none;">
+        <input type="text" id="answer" placeholder="Type your answer..." autocomplete="off" />
+        <button id="submit-answer">Submit</button>
+      </div>
+    </section>
 
-    <div class="actions">
-      <button id="buzz">Buzz</button>
-      <button id="skip">Skip</button>
-    </div>
-
-    <div id="answer-box" style="display:none;" class="answer-card">
-      <input type="text" id="answer" placeholder="Type your answer..." autocomplete="off" />
-      <button id="submit-answer">Submit</button>
-    </div>
-  </div>
+    <!-- Timer in its OWN box under the question card -->
+    <section id="timer-card" class="card timer-card" style="display:none;">
+      <div id="timer-text">Time Left: <span id="timer">10</span>s</div>
+    </section>
+  </main>
 
   <!-- Always at bottom -->
-  <div class="bottom-bar">
+  <footer class="bottombar">
     <button id="back">Return to Setup</button>
-  </div>
+  </footer>
 
   <script src="script.js"></script>
 </body>
