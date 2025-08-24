@@ -110,19 +110,12 @@ function onBuzz() {
 }
 
 function submitAnswer() {
-  const user = (document.getElementById("answer").value || "").trim().toLowerCase();
-  const correct = (currentQuestion.answer || "").trim().toLowerCase();
+  const correct = (currentQuestion.answer || "").trim();
+  setMessage("Answer: " + correct);
+  document.getElementById("answer-box").style.display = "none";
 
-  if (!user) return;
-
-  if (user === correct) {
-    setMessage("Correct.");
-    setTimeout(nextQuestion, 1000); // short pause before next
-  } else {
-    setMessage("Wrong. Keep listening...");
-    document.getElementById("answer-box").style.display = "none";
-    if (!readingDone) readNextWord();
-  }
+  // move on after short pause
+  setTimeout(nextQuestion, 2000);
 }
 
 function startTimer(seconds) {
@@ -135,8 +128,8 @@ function startTimer(seconds) {
     updateTimerUI();
     if (timer <= 0) {
       clearAllTimers();
-      setMessage("Time's up.");
-      setTimeout(nextQuestion, 1000); // auto-skip after 1s
+      setMessage("Answer: " + currentQuestion.answer);
+      setTimeout(nextQuestion, 2000);
     }
   }, 1000);
 }
