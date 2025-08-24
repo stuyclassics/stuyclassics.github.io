@@ -2,9 +2,10 @@ let questionPool = [];
 let currentQuestion = null;
 let words = [];
 let wordIndex = 0;
-let timer = 30;
+let timer = 10;  // 10 second timer
 let timerInterval = null;
 let readingTimeout = null;
+let readingDone = false;
 
 document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("start").addEventListener("click", startGame);
@@ -21,6 +22,8 @@ function backToSetup() {
   document.getElementById("question-box").innerText = "";
   document.getElementById("answer").value = "";
   document.getElementById("answer-box").style.display = "none";
+  setMessage("");
+  hideTimer();
 }
 
 async function startGame() {
@@ -32,7 +35,6 @@ async function startGame() {
   ).map(cb => cb.value.toLowerCase());
 
   try {
-    // Load CSV file directly (flat repo)
     const res = await fetch(`${level}.csv`, { cache: "no-store" });
     if (!res.ok) throw new Error("Failed to load questions");
     const text = await res.text();
@@ -43,7 +45,7 @@ async function startGame() {
       : allQs.slice();
 
     if (!questionPool.length) {
-      alert("No questions found for that selection.");
+      setMessage("No questions found for that selection.");
       return;
     }
 
@@ -53,13 +55,12 @@ async function startGame() {
     nextQuestion();
   } catch (e) {
     console.error(e);
-    alert("Couldn't load questions. Make sure CSV files are in the repo root.");
+    setMessage("Couldn't load questions.");
   }
 }
 
 function parseCSV(text) {
   const lines = text.trim().split("\n");
-  const headers = lines[0].split(",");
   return lines.slice(1).map(line => {
     const values = line.split(",");
     return {
@@ -72,17 +73,19 @@ function parseCSV(text) {
 
 function nextQuestion() {
   clearAllTimers();
+  hideTimer();
 
   currentQuestion = questionPool[Math.floor(Math.random() * questionPool.length)];
   words = currentQuestion.question.split(" ");
   wordIndex = 0;
+  readingDone = false;
 
   document.getElementById("question-box").innerText = "";
   document.getElementById("answer").value = "";
   document.getElementById("answer-box").style.display = "none";
+  setMessage("");
 
   readNextWord();
-  startTimer(30);
 }
 
 function readNextWord() {
@@ -90,12 +93,18 @@ function readNextWord() {
     document.getElementById("question-box").innerText += words[wordIndex] + " ";
     wordIndex++;
     readingTimeout = setTimeout(readNextWord, 700);
+  } else {
+    readingDone = true;
+    startTimer(10); // start 10s timer after reading finishes
   }
 }
 
 function onBuzz() {
-  clearInterval(timerInterval);
   if (readingTimeout) clearTimeout(readingTimeout);
+  if (!readingDone) {
+    // start timer immediately if buzzing early
+    startTimer(10);
+  }
   document.getElementById("answer-box").style.display = "block";
   document.getElementById("answer").focus();
 }
@@ -107,25 +116,27 @@ function submitAnswer() {
   if (!user) return;
 
   if (user === correct) {
-    alert("✅ Correct!");
-    nextQuestion();
+    setMessage("Correct.");
+    setTimeout(nextQuestion, 1000); // short pause before next
   } else {
-    alert("❌ Wrong! Keep listening...");
+    setMessage("Wrong. Keep listening...");
     document.getElementById("answer-box").style.display = "none";
-    readNextWord();
-    if (!timerInterval) startTimer(parseInt(document.getElementById("timer").innerText, 10) || 0);
+    if (!readingDone) readNextWord();
   }
 }
 
 function startTimer(seconds) {
+  if (timerInterval) return; // don’t start twice
   timer = seconds;
+  showTimer();
   updateTimerUI();
   timerInterval = setInterval(() => {
     timer--;
     updateTimerUI();
     if (timer <= 0) {
       clearAllTimers();
-      nextQuestion();
+      setMessage("Time's up.");
+      setTimeout(nextQuestion, 1000); // auto-skip after 1s
     }
   }, 1000);
 }
@@ -139,4 +150,16 @@ function clearAllTimers() {
   timerInterval = null;
   if (readingTimeout) clearTimeout(readingTimeout);
   readingTimeout = null;
+}
+
+function setMessage(msg) {
+  document.getElementById("message").innerText = msg;
+}
+
+function showTimer() {
+  document.querySelector(".timer").style.visibility = "visible";
+}
+
+function hideTimer() {
+  document.querySelector(".timer").style.visibility = "hidden";
 }
