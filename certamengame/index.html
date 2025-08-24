@@ -10,7 +10,7 @@
   <h1>Certamen Practice</h1>
 
   <!-- Setup Screen -->
-  <div id="setup">
+  <div id="setup" class="card">
     <h3>Select Level</h3>
     <label><input type="radio" name="level" value="novice" checked> Novice</label>
     <label><input type="radio" name="level" value="intermediate"> Intermediate</label>
@@ -29,7 +29,7 @@
   </div>
 
   <!-- Game Screen -->
-  <div id="game" style="display:none;">
+  <div id="game" style="display:none;" class="card">
     <div id="question-box"></div>
     <div id="message"></div>
 
@@ -38,14 +38,15 @@
       <button id="skip">Skip</button>
     </div>
 
-    <div id="answer-box" style="display:none;">
-      <input type="text" id="answer" placeholder="Your answer" autocomplete="off" />
+    <div id="answer-box" style="display:none;" class="answer-card">
+      <input type="text" id="answer" placeholder="Type your answer..." autocomplete="off" />
       <button id="submit-answer">Submit</button>
     </div>
+  </div>
 
-    <div class="bottom-actions">
-      <button id="back">Return to Setup</button>
-    </div>
+  <!-- Always at bottom -->
+  <div class="bottom-bar">
+    <button id="back">Return to Setup</button>
   </div>
 
   <script src="script.js"></script>
