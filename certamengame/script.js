@@ -74,6 +74,8 @@ function nextQuestion() {
   clearAllTimers();
 
   currentQuestion = questionPool[Math.floor(Math.random() * questionPool.length)];
+
+  // Split by spaces only
   words = currentQuestion.question.split(" ");
   wordIndex = 0;
   readingDone = false;
@@ -88,8 +90,9 @@ function nextQuestion() {
 
 function readNextWord() {
   if (wordIndex < words.length) {
-    // add a space after each word
-    document.getElementById("question-box").innerText += words[wordIndex] + " ";
+    let word = words[wordIndex];
+    // Always add a trailing space after each word
+    document.getElementById("question-box").innerText += word + " ";
     wordIndex++;
     readingTimeout = setTimeout(readNextWord, 700);
   } else {
