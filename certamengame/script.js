@@ -40,9 +40,9 @@ async function startGame() {
   ).map(cb => cb.value.toLowerCase());
 
   try {
-    const res = await fetch(`${level}.csv`, { cache: "no-store" });
-    if (!res.ok) throw new Error("Failed to load questions");
-    const text = await res.text();
+    const { text, usedPath } = await fetchLevelCSV(level);
+    console.log("Loaded CSV from:", usedPath);
+
     const allQs = parseCSV(text);
 
     questionPool = categories.length
@@ -61,21 +61,75 @@ async function startGame() {
     nextQuestion();
   } catch (e) {
     console.error(e);
-    setMessage("Couldn't load questions. Ensure CSVs are in the same folder as index.html.");
+    setMessage("Couldn't load questions. Ensure CSVs are in the same folder as index.html and named novice.csv, intermediate.csv, advanced.csv.");
   }
 }
 
-/* ---------- CSV ---------- */
+/* ---------- CSV fetching (robust, cache-busted) ---------- */
+async function fetchLevelCSV(level) {
+  const cap = level.charAt(0).toUpperCase() + level.slice(1);
+  const candidates = [
+    `./${level}.csv`,
+    `${level}.csv`,
+    `./${cap}.csv`,
+    `${cap}.csv`,
+    `./data/${level}.csv`,
+    `data/${level}.csv`
+  ];
+  let lastErr = null;
+  for (const path of candidates) {
+    try {
+      const res = await fetch(`${path}?v=${Date.now()}`, { cache: "no-store" });
+      if (res.ok) {
+        const text = await res.text();
+        return { text, usedPath: path };
+      } else {
+        lastErr = new Error(`HTTP ${res.status} for ${path}`);
+      }
+    } catch (err) {
+      lastErr = err;
+    }
+  }
+  throw lastErr || new Error("CSV not found.");
+}
+
+/* ---------- CSV parsing (handles commas inside quotes) ---------- */
 function parseCSV(text) {
-  const lines = text.trim().split("\n");
-  return lines.slice(1).map(line => {
-    const values = line.split(",");
-    return {
-      category: (values[0] || "").trim(),
-      question: (values[1] || "").trim(),
-      answer: (values[2] || "").trim()
-    };
-  });
+  const lines = text.replace(/\r/g, "").split("\n").filter(Boolean);
+  if (lines.length <= 1) return [];
+
+  const rows = [];
+  for (let i = 1; i < lines.length; i++) {
+    const line = lines[i];
+    const cells = [];
+    let cur = "";
+    let inQuotes = false;
+
+    for (let j = 0; j < line.length; j++) {
+      const ch = line[j];
+      if (ch === '"') {
+        if (inQuotes && line[j + 1] === '"') { // escaped quote
+          cur += '"';
+          j++;
+        } else {
+          inQuotes = !inQuotes;
+        }
+      } else if (ch === "," && !inQuotes) {
+        cells.push(cur);
+        cur = "";
+      } else {
+        cur += ch;
+      }
+    }
+    cells.push(cur);
+
+    rows.push({
+      category: (cells[0] || "").trim(),
+      question: (cells[1] || "").trim(),
+      answer: (cells[2] || "").trim()
+    });
+  }
+  return rows;
 }
 
 /* ---------- Question Flow ---------- */
@@ -85,8 +139,8 @@ function nextQuestion() {
 
   currentQuestion = questionPool[Math.floor(Math.random() * questionPool.length)];
 
-  // Split by spaces (simple) and we will FORCE a space after each chunk when rendering.
-  words = currentQuestion.question.split(" ");
+  // Split by spaces; we will FORCE spacing when rendering.
+  words = (currentQuestion.question || "").split(" ");
   wordIndex = 0;
   readingDone = false;
 
@@ -100,9 +154,9 @@ function nextQuestion() {
 
 function readNextWord() {
   if (wordIndex < words.length) {
-    const word = words[wordIndex] ?? "";
-    // FORCE a space after every chunk using &nbsp; to guarantee visual spacing in all fonts
-    qBox().innerHTML += escapeHTML(word) + "&nbsp;";
+    const chunk = words[wordIndex] ?? "";
+    // FORCE a visible space after every chunk with &nbsp;
+    qBox().innerHTML += escapeHTML(chunk) + "&nbsp;";
     wordIndex++;
     readingTimeout = setTimeout(readNextWord, 700);
   } else {
