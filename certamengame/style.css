@@ -37,6 +37,14 @@ h1 {
   color: #2f1a47;
 }
 
+#timer-box {
+  font-size: 20px;
+  font-weight: bold;
+  color: #b22222; /* dark red */
+  margin: 10px 0 20px 0;
+  visibility: hidden; /* hidden until started */
+}
+
 #message {
   font-size: 18px;
   font-weight: bold;
