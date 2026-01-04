@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Certamen Practice</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css?v=9" />
 </head>
 <body>
   <header class="topbar">
@@ -44,6 +44,10 @@
 
     <!-- Game Screen -->
     <section id="game" class="card" style="display:none;">
+      <div class="top-actions">
+        <button id="review-log" type="button">Review Log</button>
+      </div>
+
       <div id="question-box" class="question"></div>
       <div id="message" class="message"></div>
 
@@ -61,6 +65,10 @@
         />
         <button id="submit-answer" type="button">Submit</button>
       </div>
+
+      <div id="post-reveal" class="post-reveal" style="display:none;">
+        <button id="mark-review" type="button">Mark for Review</button>
+      </div>
     </section>
 
     <!-- Timer Card -->
@@ -69,12 +77,24 @@
         Time Left: <span id="timer">10</span>s
       </div>
     </section>
+
+    <!-- Review Screen -->
+    <section id="review" class="card" style="display:none;">
+      <h3>Review Log</h3>
+
+      <div class="review-actions">
+        <button id="clear-review" type="button">Clear Log</button>
+        <button id="close-review" type="button">Back to Game</button>
+      </div>
+
+      <div id="review-list" class="review-list"></div>
+    </section>
   </main>
 
   <footer class="bottombar">
     <button id="back" type="button">Return to Setup</button>
   </footer>
 
-  <script src="script.js"></script>
+  <script src="script.js?v=9"></script>
 </body>
 </html>

@@ -8,8 +8,10 @@ let timerInterval = null;
 let readingTimeout = null;
 let readingDone = false;
 
-// Slider controls words per second (higher = faster)
+// Slider controls words per second
 let wordsPerSecond = 1.4;
+
+const REVIEW_KEY = "certamen_review_log_v1";
 
 const el = (id) => document.getElementById(id);
 const qBox = () => el("question-box");
@@ -21,10 +23,14 @@ document.addEventListener("DOMContentLoaded", () => {
   el("submit-answer").addEventListener("click", submitAnswer);
   el("back").addEventListener("click", backToSetup);
 
-  // ENTER behavior (capture=true so it beats default "button activation")
-  // - In game:
-  //   - if answer box visible -> submit
-  //   - else -> buzz
+  el("review-log").addEventListener("click", openReview);
+  el("close-review").addEventListener("click", closeReview);
+  el("clear-review").addEventListener("click", clearReviewLog);
+  el("mark-review").addEventListener("click", markCurrentForReview);
+
+  // Enter in game:
+  // - if answer box visible -> submit
+  // - else -> buzz
   document.addEventListener("keydown", (e) => {
     if (e.key !== "Enter") return;
 
@@ -40,29 +46,127 @@ document.addEventListener("DOMContentLoaded", () => {
     else onBuzz();
   }, true);
 
-  // Read-speed slider (words/sec)
+  // Read-speed slider
   const speed = el("speed");
   const label = el("speed-label");
 
-  wordsPerSecond = Number(speed.value) || 1.4;
-  label.innerText = `${wordsPerSecond.toFixed(1)} words/sec`;
-
-  speed.addEventListener("input", () => {
+  function syncSpeedUI() {
     wordsPerSecond = Number(speed.value) || 1.4;
-    label.innerText = `${wordsPerSecond.toFixed(1)} words/sec`;
-  });
+    label.textContent = `${wordsPerSecond.toFixed(1)} words/sec`;
+  }
+  syncSpeedUI();
+  speed.addEventListener("input", syncSpeedUI);
 });
+
+/* ---------- Review Log Storage ---------- */
+function loadReviewLog() {
+  try {
+    const raw = localStorage.getItem(REVIEW_KEY);
+    const arr = raw ? JSON.parse(raw) : [];
+    return Array.isArray(arr) ? arr : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveReviewLog(arr) {
+  localStorage.setItem(REVIEW_KEY, JSON.stringify(arr));
+}
+
+function makeReviewId(q) {
+  // stable enough: category + question + answer
+  const s = `${q.category}||${q.question}||${q.answer}`;
+  let h = 0;
+  for (let i = 0; i < s.length; i++) {
+    h = (h * 31 + s.charCodeAt(i)) >>> 0;
+  }
+  return String(h);
+}
+
+function addToReviewLog(q) {
+  if (!q) return;
+
+  const log = loadReviewLog();
+  const id = makeReviewId(q);
+
+  const exists = log.some(item => item.id === id);
+  if (exists) return;
+
+  log.unshift({
+    id,
+    category: q.category || "",
+    question: q.question || "",
+    answer: q.answer || "",
+    addedAt: Date.now()
+  });
+
+  saveReviewLog(log);
+}
+
+function renderReviewLog() {
+  const list = el("review-list");
+  const log = loadReviewLog();
+
+  if (!log.length) {
+    list.innerHTML = `<div class="review-empty">No saved questions yet.</div>`;
+    return;
+  }
+
+  const html = log.map(item => {
+    const cat = escapeHTML(item.category || "");
+    const q = escapeHTML(item.question || "");
+    const a = escapeHTML(item.answer || "");
+    return `
+      <div class="review-item">
+        <div class="review-meta">${cat}</div>
+        <div class="review-q">${q}</div>
+        <div class="review-a"><span class="review-a-label">Answer:</span> ${a}</div>
+      </div>
+    `;
+  }).join("");
+
+  list.innerHTML = html;
+}
+
+function clearReviewLog() {
+  localStorage.removeItem(REVIEW_KEY);
+  renderReviewLog();
+}
 
 /* ---------- Navigation ---------- */
 function backToSetup() {
   clearAllTimers();
+  el("review").style.display = "none";
   el("game").style.display = "none";
   el("setup").style.display = "block";
   el("timer-card").style.display = "none";
   qBox().innerHTML = "";
   el("answer").value = "";
   el("answer-box").style.display = "none";
+  el("post-reveal").style.display = "none";
   setMessage("");
+}
+
+function openReview() {
+  el("setup").style.display = "none";
+  el("game").style.display = "none";
+  el("timer-card").style.display = "none";
+  el("review").style.display = "block";
+  renderReviewLog();
+}
+
+function closeReview() {
+  el("review").style.display = "none";
+
+  // return to game if game was started, else setup
+  const hasGame = questionPool.length > 0;
+  if (hasGame) {
+    el("game").style.display = "block";
+    // timer card visibility should reflect whether a timer is running
+    el("timer-card").style.display = timerInterval ? "block" : "none";
+  } else {
+    el("setup").style.display = "block";
+  }
 }
 
 /* ---------- Start ---------- */
@@ -87,6 +191,7 @@ async function startGame() {
   }
 
   el("setup").style.display = "none";
+  el("review").style.display = "none";
   el("game").style.display = "block";
   el("timer-card").style.display = "none";
 
@@ -141,6 +246,7 @@ function nextQuestion() {
   qBox().innerHTML = "";
   el("answer").value = "";
   el("answer-box").style.display = "none";
+  el("post-reveal").style.display = "none";
   setMessage("");
 
   readNextWord();
@@ -151,7 +257,6 @@ function readNextWord() {
     qBox().innerHTML += escapeHTML(words[wordIndex]) + "&nbsp;";
     wordIndex++;
 
-    // Uses CURRENT wordsPerSecond each time, so slider changes apply mid-read.
     const delayMs = Math.max(50, Math.round(1000 / (wordsPerSecond || 1)));
     readingTimeout = setTimeout(readNextWord, delayMs);
   } else {
@@ -168,6 +273,7 @@ function onBuzz() {
   }
   if (!readingDone) startTimer(10);
   el("answer-box").style.display = "flex";
+  el("post-reveal").style.display = "none";
   el("answer").focus();
 }
 
@@ -175,9 +281,19 @@ function submitAnswer() {
   showAnswer();
 }
 
+function markCurrentForReview() {
+  addToReviewLog(currentQuestion);
+  // small feedback in the message line without changing answer text
+  setMessage("Saved to Review Log.");
+}
+
 function showAnswer() {
-  setMessage("Answer: " + (currentQuestion ? currentQuestion.answer : ""));
+  const correct = (currentQuestion && currentQuestion.answer) ? currentQuestion.answer : "";
+  setMessage("Answer: " + correct);
+
   el("answer-box").style.display = "none";
+  el("post-reveal").style.display = "block";
+
   setTimeout(nextQuestion, 2000);
 }
 

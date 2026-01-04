@@ -37,6 +37,12 @@ main {
   text-align: center;
 }
 
+.top-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 10px;
+}
+
 .question {
   font-size: 24px;
   min-height: 70px;
@@ -69,6 +75,12 @@ main {
   border: 2px solid #4b0082;
   border-radius: 6px;
   flex: 1;
+}
+
+.post-reveal {
+  margin-top: 14px;
+  display: flex;
+  justify-content: center;
 }
 
 button {
@@ -110,4 +122,51 @@ button:hover {
   text-align: center;
   padding: 18px 0;
   border-top: 2px solid #4b0082;
+}
+
+/* Review screen */
+.review-actions {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  margin: 12px 0 18px 0;
+}
+
+.review-list {
+  text-align: left;
+  display: grid;
+  gap: 14px;
+}
+
+.review-item {
+  background: #ffffff;
+  border: 1px solid rgba(75,0,130,0.35);
+  border-radius: 10px;
+  padding: 14px 14px;
+}
+
+.review-meta {
+  font-weight: bold;
+  color: #4b0082;
+  margin-bottom: 6px;
+}
+
+.review-q {
+  color: #2f1a47;
+  margin-bottom: 8px;
+}
+
+.review-a {
+  color: #2f1a47;
+}
+
+.review-a-label {
+  font-weight: bold;
+  color: #4b0082;
+}
+
+.review-empty {
+  text-align: center;
+  font-weight: bold;
+  color: #4b0082;
 }
