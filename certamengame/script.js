@@ -28,9 +28,6 @@ document.addEventListener("DOMContentLoaded", () => {
   el("clear-review").addEventListener("click", clearReviewLog);
   el("mark-review").addEventListener("click", markCurrentForReview);
 
-  // Enter in game:
-  // - if answer box visible -> submit
-  // - else -> buzz
   document.addEventListener("keydown", (e) => {
     if (e.key !== "Enter") return;
 
@@ -46,7 +43,6 @@ document.addEventListener("DOMContentLoaded", () => {
     else onBuzz();
   }, true);
 
-  // Read-speed slider
   const speed = el("speed");
   const label = el("speed-label");
 
@@ -74,7 +70,6 @@ function saveReviewLog(arr) {
 }
 
 function makeReviewId(q) {
-  // stable enough: category + question + answer
   const s = `${q.category}||${q.question}||${q.answer}`;
   let h = 0;
   for (let i = 0; i < s.length; i++) {
@@ -83,20 +78,30 @@ function makeReviewId(q) {
   return String(h);
 }
 
+function prettyCategory(cat) {
+  const c = String(cat || "").trim();
+  if (!c) return "";
+  // Capitalize each word, keep the rest lowercase
+  return c
+    .toLowerCase()
+    .split(/\s+/)
+    .map(w => w ? (w[0].toUpperCase() + w.slice(1)) : "")
+    .join(" ");
+}
+
 function addToReviewLog(q) {
   if (!q) return;
 
   const log = loadReviewLog();
   const id = makeReviewId(q);
 
-  const exists = log.some(item => item.id === id);
-  if (exists) return;
+  if (log.some(item => item.id === id)) return;
 
   log.unshift({
     id,
-    category: q.category || "",
-    question: q.question || "",
-    answer: q.answer || "",
+    category: prettyCategory(q.category),
+    question: String(q.question || "").trim(),
+    answer: String(q.answer || "").trim(), // SAVED ANSWER
     addedAt: Date.now()
   });
 
@@ -158,11 +163,9 @@ function openReview() {
 function closeReview() {
   el("review").style.display = "none";
 
-  // return to game if game was started, else setup
   const hasGame = questionPool.length > 0;
   if (hasGame) {
     el("game").style.display = "block";
-    // timer card visibility should reflect whether a timer is running
     el("timer-card").style.display = timerInterval ? "block" : "none";
   } else {
     el("setup").style.display = "block";
@@ -283,7 +286,6 @@ function submitAnswer() {
 
 function markCurrentForReview() {
   addToReviewLog(currentQuestion);
-  // small feedback in the message line without changing answer text
   setMessage("Saved to Review Log.");
 }
 
@@ -291,7 +293,8 @@ function showAnswer() {
   const correct = (currentQuestion && currentQuestion.answer) ? currentQuestion.answer : "";
   setMessage("Answer: " + correct);
 
-  el("answer-box").style.display = "none";
+el("answer-box").style.display = "none";
+
   el("post-reveal").style.display = "block";
 
   setTimeout(nextQuestion, 2000);
