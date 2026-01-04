@@ -108,9 +108,7 @@ button:hover {
   color: #4b0082;
 }
 
-.timer-card {
-  display: none;
-}
+.timer-card { display: none; }
 
 #timer-text {
   font-size: 20px;
@@ -154,10 +152,6 @@ button:hover {
 .review-q {
   color: #2f1a47;
   margin-bottom: 8px;
-}
-
-.review-a {
-  color: #2f1a47;
 }
 
 .review-a-label {
