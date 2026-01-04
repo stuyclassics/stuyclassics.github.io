@@ -2,10 +2,13 @@ let questionPool = [];
 let currentQuestion = null;
 let words = [];
 let wordIndex = 0;
-let timer = 10;                 // 10-second answer window
+
+let timer = 10;
 let timerInterval = null;
 let readingTimeout = null;
 let readingDone = false;
+
+let readDelay = 700; // ms per word, controlled by slider
 
 const el = (id) => document.getElementById(id);
 const qBox = () => el("question-box");
@@ -16,6 +19,26 @@ document.addEventListener("DOMContentLoaded", () => {
   el("skip").addEventListener("click", nextQuestion);
   el("submit-answer").addEventListener("click", submitAnswer);
   el("back").addEventListener("click", backToSetup);
+
+  // ENTER submits answer
+  el("answer").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      submitAnswer();
+    }
+  });
+
+  // Read-speed slider
+  const speed = el("speed");
+  const label = el("speed-label");
+
+  readDelay = Number(speed.value);
+  label.innerText = `${readDelay} ms/word`;
+
+  speed.addEventListener("input", () => {
+    readDelay = Number(speed.value);
+    label.innerText = `${readDelay} ms/word`;
+  });
 });
 
 /* ---------- Navigation ---------- */
@@ -39,87 +62,47 @@ async function startGame() {
     document.querySelectorAll('#setup input[type="checkbox"]:checked')
   ).map(cb => cb.value.toLowerCase());
 
-  try {
-    const { text, usedPath } = await fetchLevelCSV(level);
-    console.log("Loaded CSV from:", usedPath);
+  const { text } = await fetchLevelCSV(level);
+  const allQs = parseCSV(text);
 
-    const allQs = parseCSV(text);
+  questionPool = categories.length
+    ? allQs.filter(q => categories.includes(q.category.toLowerCase()))
+    : allQs.slice();
 
-    questionPool = categories.length
-      ? allQs.filter(q => categories.includes(q.category.toLowerCase()))
-      : allQs.slice();
-
-    if (!questionPool.length) {
-      setMessage("No questions found for that selection.");
-      return;
-    }
-
-    el("setup").style.display = "none";
-    el("game").style.display = "block";
-    el("timer-card").style.display = "none";
-
-    nextQuestion();
-  } catch (e) {
-    console.error(e);
-    setMessage("Couldn't load questions. Ensure CSVs are in the same folder as index.html and named novice.csv, intermediate.csv, advanced.csv.");
+  if (!questionPool.length) {
+    setMessage("No questions found.");
+    return;
   }
+
+  el("setup").style.display = "none";
+  el("game").style.display = "block";
+  el("timer-card").style.display = "none";
+
+  nextQuestion();
 }
 
-/* ---------- CSV fetching (robust, cache-busted) ---------- */
+/* ---------- CSV ---------- */
 async function fetchLevelCSV(level) {
-  const cap = level.charAt(0).toUpperCase() + level.slice(1);
-  const candidates = [
-    `./${level}.csv`,
-    `${level}.csv`,
-    `./${cap}.csv`,
-    `${cap}.csv`,
-    `./data/${level}.csv`,
-    `data/${level}.csv`
-  ];
-  let lastErr = null;
-  for (const path of candidates) {
-    try {
-      const res = await fetch(`${path}?v=${Date.now()}`, { cache: "no-store" });
-      if (res.ok) {
-        const text = await res.text();
-        return { text, usedPath: path };
-      } else {
-        lastErr = new Error(`HTTP ${res.status} for ${path}`);
-      }
-    } catch (err) {
-      lastErr = err;
-    }
-  }
-  throw lastErr || new Error("CSV not found.");
+  const res = await fetch(`${level}.csv?v=${Date.now()}`, { cache: "no-store" });
+  if (!res.ok) throw new Error("CSV load failed");
+  return { text: await res.text() };
 }
 
-/* ---------- CSV parsing (handles commas inside quotes) ---------- */
 function parseCSV(text) {
   const lines = text.replace(/\r/g, "").split("\n").filter(Boolean);
-  if (lines.length <= 1) return [];
-
   const rows = [];
+
   for (let i = 1; i < lines.length; i++) {
-    const line = lines[i];
     const cells = [];
     let cur = "";
     let inQuotes = false;
 
-    for (let j = 0; j < line.length; j++) {
-      const ch = line[j];
-      if (ch === '"') {
-        if (inQuotes && line[j + 1] === '"') { // escaped quote
-          cur += '"';
-          j++;
-        } else {
-          inQuotes = !inQuotes;
-        }
-      } else if (ch === "," && !inQuotes) {
+    for (let ch of lines[i]) {
+      if (ch === '"') inQuotes = !inQuotes;
+      else if (ch === "," && !inQuotes) {
         cells.push(cur);
         cur = "";
-      } else {
-        cur += ch;
-      }
+      } else cur += ch;
     }
     cells.push(cur);
 
@@ -137,14 +120,14 @@ function nextQuestion() {
   clearAllTimers();
   hideTimer();
 
-  currentQuestion = questionPool[Math.floor(Math.random() * questionPool.length)];
+  currentQuestion =
+    questionPool[Math.floor(Math.random() * questionPool.length)];
 
-  // Split by spaces; we will FORCE spacing when rendering.
-  words = (currentQuestion.question || "").split(" ");
+  words = currentQuestion.question.split(" ");
   wordIndex = 0;
   readingDone = false;
 
-  qBox().innerHTML = "";                  // using innerHTML so we can append &nbsp;
+  qBox().innerHTML = "";
   el("answer").value = "";
   el("answer-box").style.display = "none";
   setMessage("");
@@ -154,21 +137,19 @@ function nextQuestion() {
 
 function readNextWord() {
   if (wordIndex < words.length) {
-    const chunk = words[wordIndex] ?? "";
-    // FORCE a visible space after every chunk with &nbsp;
-    qBox().innerHTML += escapeHTML(chunk) + "&nbsp;";
+    qBox().innerHTML += escapeHTML(words[wordIndex]) + "&nbsp;";
     wordIndex++;
-    readingTimeout = setTimeout(readNextWord, 700);
+    readingTimeout = setTimeout(readNextWord, readDelay);
   } else {
     readingDone = true;
-    startTimer(10); // start once reading completes
+    startTimer(10);
   }
 }
 
 /* ---------- Buzz / Answer ---------- */
 function onBuzz() {
   if (readingTimeout) clearTimeout(readingTimeout);
-  if (!readingDone) startTimer(10);      // start immediately on early buzz
+  if (!readingDone) startTimer(10);
   el("answer-box").style.display = "flex";
   el("answer").focus();
 }
@@ -178,21 +159,21 @@ function submitAnswer() {
 }
 
 function showAnswer() {
-  const correct = (currentQuestion.answer || "").trim();
-  setMessage("Answer: " + correct);
+  setMessage("Answer: " + currentQuestion.answer);
   el("answer-box").style.display = "none";
   setTimeout(nextQuestion, 2000);
 }
 
 /* ---------- Timer ---------- */
 function startTimer(seconds) {
-  if (timerInterval) return;            // don’t double-start
+  if (timerInterval) return;
   timer = seconds;
   showTimer();
-  updateTimerUI();
+  updateTimer();
+
   timerInterval = setInterval(() => {
     timer--;
-    updateTimerUI();
+    updateTimer();
     if (timer <= 0) {
       clearAllTimers();
       showAnswer();
@@ -200,8 +181,8 @@ function startTimer(seconds) {
   }, 1000);
 }
 
-function updateTimerUI() {
-  el("timer").innerText = String(timer);
+function updateTimer() {
+  el("timer").innerText = timer;
 }
 
 function clearAllTimers() {
@@ -219,17 +200,14 @@ function hideTimer() {
   el("timer-card").style.display = "none";
 }
 
-/* ---------- UI helpers ---------- */
+/* ---------- Utils ---------- */
 function setMessage(msg) {
   el("message").innerText = msg;
 }
 
-// Escape HTML to safely use innerHTML when we append &nbsp;
 function escapeHTML(s) {
-  return String(s)
+  return s
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
+    .replaceAll(">", "&gt;");
 }

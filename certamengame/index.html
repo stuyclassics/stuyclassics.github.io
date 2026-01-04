@@ -26,6 +26,17 @@
       <label><input type="checkbox" value="culture"> Culture</label>
       <label><input type="checkbox" value="mythology"> Mythology</label>
 
+      <h3>Read Speed</h3>
+      <input
+        type="range"
+        id="speed"
+        min="200"
+        max="1200"
+        step="25"
+        value="700"
+      />
+      <div id="speed-label">700 ms/word</div>
+
       <div class="actions">
         <button id="start">Start Game</button>
       </div>
@@ -42,14 +53,21 @@
       </div>
 
       <div id="answer-box" class="answer-card" style="display:none;">
-        <input type="text" id="answer" placeholder="Type your answer..." autocomplete="off" />
+        <input
+          type="text"
+          id="answer"
+          placeholder="Type your answer..."
+          autocomplete="off"
+        />
         <button id="submit-answer">Submit</button>
       </div>
     </section>
 
-    <!-- Timer lives in its OWN card below the game card -->
+    <!-- Timer Card -->
     <section id="timer-card" class="card timer-card" style="display:none;">
-      <div id="timer-text">Time Left: <span id="timer">10</span>s</div>
+      <div id="timer-text">
+        Time Left: <span id="timer">10</span>s
+      </div>
     </section>
   </main>
 
