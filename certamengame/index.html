@@ -30,15 +30,15 @@
       <input
         type="range"
         id="speed"
-        min="1.0"
-        max="5.0"
+        min="0.8"
+        max="6.0"
         step="0.1"
         value="1.4"
       />
       <div id="speed-label">1.4 words/sec</div>
 
       <div class="actions">
-        <button id="start">Start Game</button>
+        <button id="start" type="button">Start Game</button>
       </div>
     </section>
 
@@ -48,8 +48,8 @@
       <div id="message" class="message"></div>
 
       <div class="actions">
-        <button id="buzz">Buzz</button>
-        <button id="skip">Skip</button>
+        <button id="buzz" type="button">Buzz</button>
+        <button id="skip" type="button">Skip</button>
       </div>
 
       <div id="answer-box" class="answer-card" style="display:none;">
@@ -59,7 +59,7 @@
           placeholder="Type your answer..."
           autocomplete="off"
         />
-        <button id="submit-answer">Submit</button>
+        <button id="submit-answer" type="button">Submit</button>
       </div>
     </section>
 
@@ -72,7 +72,7 @@
   </main>
 
   <footer class="bottombar">
-    <button id="back">Return to Setup</button>
+    <button id="back" type="button">Return to Setup</button>
   </footer>
 
   <script src="script.js"></script>

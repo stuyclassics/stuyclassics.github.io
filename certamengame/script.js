@@ -8,9 +8,8 @@ let timerInterval = null;
 let readingTimeout = null;
 let readingDone = false;
 
-// Slider now controls words per second (higher = faster)
+// Slider controls words per second (higher = faster)
 let wordsPerSecond = 1.4;
-let readDelay = Math.round(1000 / wordsPerSecond);
 
 const el = (id) => document.getElementById(id);
 const qBox = () => el("question-box");
@@ -22,33 +21,34 @@ document.addEventListener("DOMContentLoaded", () => {
   el("submit-answer").addEventListener("click", submitAnswer);
   el("back").addEventListener("click", backToSetup);
 
-  // Enter:
-  // - If answer box is visible: submit
-  // - Otherwise: buzz
+  // ENTER behavior (capture=true so it beats default "button activation")
+  // - In game:
+  //   - if answer box visible -> submit
+  //   - else -> buzz
   document.addEventListener("keydown", (e) => {
     if (e.key !== "Enter") return;
 
-    const setupVisible = el("setup").style.display !== "none";
-    if (setupVisible) return;
+    const inGame = el("game").style.display !== "none";
+    if (!inGame) return;
 
     e.preventDefault();
+    e.stopPropagation();
+    if (typeof e.stopImmediatePropagation === "function") e.stopImmediatePropagation();
 
     const answerBoxVisible = el("answer-box").style.display !== "none";
     if (answerBoxVisible) submitAnswer();
     else onBuzz();
-  });
+  }, true);
 
-  // Read-speed slider: words/sec
+  // Read-speed slider (words/sec)
   const speed = el("speed");
   const label = el("speed-label");
 
   wordsPerSecond = Number(speed.value) || 1.4;
-  readDelay = Math.max(50, Math.round(1000 / wordsPerSecond));
   label.innerText = `${wordsPerSecond.toFixed(1)} words/sec`;
 
   speed.addEventListener("input", () => {
     wordsPerSecond = Number(speed.value) || 1.4;
-    readDelay = Math.max(50, Math.round(1000 / wordsPerSecond));
     label.innerText = `${wordsPerSecond.toFixed(1)} words/sec`;
   });
 });
@@ -132,10 +132,9 @@ function nextQuestion() {
   clearAllTimers();
   hideTimer();
 
-  currentQuestion =
-    questionPool[Math.floor(Math.random() * questionPool.length)];
+  currentQuestion = questionPool[Math.floor(Math.random() * questionPool.length)];
 
-  words = currentQuestion.question.split(" ");
+  words = (currentQuestion.question || "").split(" ");
   wordIndex = 0;
   readingDone = false;
 
@@ -151,7 +150,10 @@ function readNextWord() {
   if (wordIndex < words.length) {
     qBox().innerHTML += escapeHTML(words[wordIndex]) + "&nbsp;";
     wordIndex++;
-    readingTimeout = setTimeout(readNextWord, readDelay);
+
+    // Uses CURRENT wordsPerSecond each time, so slider changes apply mid-read.
+    const delayMs = Math.max(50, Math.round(1000 / (wordsPerSecond || 1)));
+    readingTimeout = setTimeout(readNextWord, delayMs);
   } else {
     readingDone = true;
     startTimer(10);
@@ -160,7 +162,10 @@ function readNextWord() {
 
 /* ---------- Buzz / Answer ---------- */
 function onBuzz() {
-  if (readingTimeout) clearTimeout(readingTimeout);
+  if (readingTimeout) {
+    clearTimeout(readingTimeout);
+    readingTimeout = null;
+  }
   if (!readingDone) startTimer(10);
   el("answer-box").style.display = "flex";
   el("answer").focus();
@@ -171,7 +176,7 @@ function submitAnswer() {
 }
 
 function showAnswer() {
-  setMessage("Answer: " + currentQuestion.answer);
+  setMessage("Answer: " + (currentQuestion ? currentQuestion.answer : ""));
   el("answer-box").style.display = "none";
   setTimeout(nextQuestion, 2000);
 }
@@ -194,12 +199,13 @@ function startTimer(seconds) {
 }
 
 function updateTimer() {
-  el("timer").innerText = timer;
+  el("timer").innerText = String(timer);
 }
 
 function clearAllTimers() {
   if (timerInterval) clearInterval(timerInterval);
   timerInterval = null;
+
   if (readingTimeout) clearTimeout(readingTimeout);
   readingTimeout = null;
 }
@@ -218,7 +224,7 @@ function setMessage(msg) {
 }
 
 function escapeHTML(s) {
-  return s
+  return String(s)
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;");
