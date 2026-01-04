@@ -8,7 +8,9 @@ let timerInterval = null;
 let readingTimeout = null;
 let readingDone = false;
 
-let readDelay = 700; // ms per word, controlled by slider
+// Slider now controls words per second (higher = faster)
+let wordsPerSecond = 1.4;
+let readDelay = Math.round(1000 / wordsPerSecond);
 
 const el = (id) => document.getElementById(id);
 const qBox = () => el("question-box");
@@ -20,24 +22,34 @@ document.addEventListener("DOMContentLoaded", () => {
   el("submit-answer").addEventListener("click", submitAnswer);
   el("back").addEventListener("click", backToSetup);
 
-  // ENTER submits answer
-  el("answer").addEventListener("keydown", (e) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      submitAnswer();
-    }
+  // Enter:
+  // - If answer box is visible: submit
+  // - Otherwise: buzz
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "Enter") return;
+
+    const setupVisible = el("setup").style.display !== "none";
+    if (setupVisible) return;
+
+    e.preventDefault();
+
+    const answerBoxVisible = el("answer-box").style.display !== "none";
+    if (answerBoxVisible) submitAnswer();
+    else onBuzz();
   });
 
-  // Read-speed slider
+  // Read-speed slider: words/sec
   const speed = el("speed");
   const label = el("speed-label");
 
-  readDelay = Number(speed.value);
-  label.innerText = `${readDelay} ms/word`;
+  wordsPerSecond = Number(speed.value) || 1.4;
+  readDelay = Math.max(50, Math.round(1000 / wordsPerSecond));
+  label.innerText = `${wordsPerSecond.toFixed(1)} words/sec`;
 
   speed.addEventListener("input", () => {
-    readDelay = Number(speed.value);
-    label.innerText = `${readDelay} ms/word`;
+    wordsPerSecond = Number(speed.value) || 1.4;
+    readDelay = Math.max(50, Math.round(1000 / wordsPerSecond));
+    label.innerText = `${wordsPerSecond.toFixed(1)} words/sec`;
   });
 });
 
