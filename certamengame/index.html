@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Certamen Practice</title>
-  <link rel="stylesheet" href="style.css?v=10" />
+  <link rel="stylesheet" href="style.css?v=12" />
 </head>
 <body>
   <header class="topbar">
@@ -12,7 +12,6 @@
   </header>
 
   <main>
-    <!-- Setup Screen -->
     <section id="setup" class="card">
       <h3>Select Level</h3>
       <label><input type="radio" name="level" value="novice" checked> Novice</label>
@@ -27,14 +26,7 @@
       <label><input type="checkbox" value="mythology"> Mythology</label>
 
       <h3>Read Speed</h3>
-      <input
-        type="range"
-        id="speed"
-        min="0.8"
-        max="6.0"
-        step="0.1"
-        value="1.4"
-      />
+      <input type="range" id="speed" min="0.8" max="6.0" step="0.1" value="1.4" />
       <div id="speed-label">1.4 words/sec</div>
 
       <div class="actions">
@@ -42,7 +34,6 @@
       </div>
     </section>
 
-    <!-- Game Screen -->
     <section id="game" class="card" style="display:none;">
       <div class="top-actions">
         <button id="review-log" type="button">Review Log</button>
@@ -57,12 +48,7 @@
       </div>
 
       <div id="answer-box" class="answer-card" style="display:none;">
-        <input
-          type="text"
-          id="answer"
-          placeholder="Type your answer..."
-          autocomplete="off"
-        />
+        <input type="text" id="answer" placeholder="Type your answer..." autocomplete="off" />
         <button id="submit-answer" type="button">Submit</button>
       </div>
 
@@ -71,22 +57,16 @@
       </div>
     </section>
 
-    <!-- Timer Card -->
     <section id="timer-card" class="card timer-card" style="display:none;">
-      <div id="timer-text">
-        Time Left: <span id="timer">10</span>s
-      </div>
+      <div id="timer-text">Time Left: <span id="timer">10</span>s</div>
     </section>
 
-    <!-- Review Screen -->
     <section id="review" class="card" style="display:none;">
       <h3>Review Log</h3>
-
       <div class="review-actions">
         <button id="clear-review" type="button">Clear Log</button>
         <button id="close-review" type="button">Back to Game</button>
       </div>
-
       <div id="review-list" class="review-list"></div>
     </section>
   </main>
@@ -95,6 +75,6 @@
     <button id="back" type="button">Return to Setup</button>
   </footer>
 
-  <script src="script.js?v=10"></script>
+  <script src="script.js?v=12"></script>
 </body>
 </html>

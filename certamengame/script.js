@@ -3,15 +3,16 @@ let currentQuestion = null;
 let words = [];
 let wordIndex = 0;
 
+let lastUserResponse = ""; // ONLY stored temporarily for current question
+
 let timer = 10;
 let timerInterval = null;
 let readingTimeout = null;
 let readingDone = false;
 
-// Slider controls words per second
 let wordsPerSecond = 1.4;
 
-const REVIEW_KEY = "certamen_review_log_v1";
+const REVIEW_KEY = "certamen_review_log_v3";
 
 const el = (id) => document.getElementById(id);
 const qBox = () => el("question-box");
@@ -30,36 +31,30 @@ document.addEventListener("DOMContentLoaded", () => {
 
   document.addEventListener("keydown", (e) => {
     if (e.key !== "Enter") return;
-
-    const inGame = el("game").style.display !== "none";
-    if (!inGame) return;
+    if (el("game").style.display === "none") return;
 
     e.preventDefault();
     e.stopPropagation();
-    if (typeof e.stopImmediatePropagation === "function") e.stopImmediatePropagation();
 
-    const answerBoxVisible = el("answer-box").style.display !== "none";
-    if (answerBoxVisible) submitAnswer();
+    if (el("answer-box").style.display !== "none") submitAnswer();
     else onBuzz();
   }, true);
 
   const speed = el("speed");
   const label = el("speed-label");
 
-  function syncSpeedUI() {
+  function syncSpeed() {
     wordsPerSecond = Number(speed.value) || 1.4;
     label.textContent = `${wordsPerSecond.toFixed(1)} words/sec`;
   }
-  syncSpeedUI();
-  speed.addEventListener("input", syncSpeedUI);
+  syncSpeed();
+  speed.addEventListener("input", syncSpeed);
 });
 
-/* ---------- Review Log Storage ---------- */
+/* ---------- Review Storage ---------- */
 function loadReviewLog() {
   try {
-    const raw = localStorage.getItem(REVIEW_KEY);
-    const arr = raw ? JSON.parse(raw) : [];
-    return Array.isArray(arr) ? arr : [];
+    return JSON.parse(localStorage.getItem(REVIEW_KEY)) || [];
   } catch {
     return [];
   }
@@ -69,39 +64,26 @@ function saveReviewLog(arr) {
   localStorage.setItem(REVIEW_KEY, JSON.stringify(arr));
 }
 
-function makeReviewId(q) {
-  const s = `${q.category}||${q.question}||${q.answer}`;
-  let h = 0;
-  for (let i = 0; i < s.length; i++) {
-    h = (h * 31 + s.charCodeAt(i)) >>> 0;
-  }
-  return String(h);
-}
-
 function prettyCategory(cat) {
-  const c = String(cat || "").trim();
-  if (!c) return "";
-  // Capitalize each word, keep the rest lowercase
-  return c
+  return String(cat || "")
     .toLowerCase()
     .split(/\s+/)
-    .map(w => w ? (w[0].toUpperCase() + w.slice(1)) : "")
+    .map(w => w ? w[0].toUpperCase() + w.slice(1) : "")
     .join(" ");
 }
 
-function addToReviewLog(q) {
-  if (!q) return;
-
+function addToReviewLog(q, response) {
   const log = loadReviewLog();
-  const id = makeReviewId(q);
 
-  if (log.some(item => item.id === id)) return;
+  const id = `${q.category}||${q.question}||${q.answer}`;
+  if (log.some(x => x.id === id)) return;
 
   log.unshift({
     id,
     category: prettyCategory(q.category),
-    question: String(q.question || "").trim(),
-    answer: String(q.answer || "").trim(), // SAVED ANSWER
+    question: q.question,
+    answer: q.answer,
+    response: response || "(no response)",
     addedAt: Date.now()
   });
 
@@ -117,20 +99,14 @@ function renderReviewLog() {
     return;
   }
 
-  const html = log.map(item => {
-    const cat = escapeHTML(item.category || "");
-    const q = escapeHTML(item.question || "");
-    const a = escapeHTML(item.answer || "");
-    return `
-      <div class="review-item">
-        <div class="review-meta">${cat}</div>
-        <div class="review-q">${q}</div>
-        <div class="review-a"><span class="review-a-label">Answer:</span> ${a}</div>
-      </div>
-    `;
-  }).join("");
-
-  list.innerHTML = html;
+  list.innerHTML = log.map(item => `
+    <div class="review-item">
+      <div class="review-meta">${escapeHTML(item.category)}</div>
+      <div class="review-q">${escapeHTML(item.question)}</div>
+      <div class="review-r"><strong>Your response:</strong> ${escapeHTML(item.response)}</div>
+      <div class="review-a"><strong>Answer:</strong> ${escapeHTML(item.answer)}</div>
+    </div>
+  `).join("");
 }
 
 function clearReviewLog() {
@@ -162,17 +138,10 @@ function openReview() {
 
 function closeReview() {
   el("review").style.display = "none";
-
-  const hasGame = questionPool.length > 0;
-  if (hasGame) {
-    el("game").style.display = "block";
-    el("timer-card").style.display = timerInterval ? "block" : "none";
-  } else {
-    el("setup").style.display = "block";
-  }
+  el("game").style.display = "block";
 }
 
-/* ---------- Start ---------- */
+/* ---------- Game ---------- */
 async function startGame() {
   clearAllTimers();
 
@@ -181,68 +150,27 @@ async function startGame() {
     document.querySelectorAll('#setup input[type="checkbox"]:checked')
   ).map(cb => cb.value.toLowerCase());
 
-  const { text } = await fetchLevelCSV(level);
+  const res = await fetch(`${level}.csv?v=${Date.now()}`);
+  const text = await res.text();
   const allQs = parseCSV(text);
 
   questionPool = categories.length
     ? allQs.filter(q => categories.includes(q.category.toLowerCase()))
     : allQs.slice();
 
-  if (!questionPool.length) {
-    setMessage("No questions found.");
-    return;
-  }
-
   el("setup").style.display = "none";
-  el("review").style.display = "none";
   el("game").style.display = "block";
-  el("timer-card").style.display = "none";
 
   nextQuestion();
 }
 
-/* ---------- CSV ---------- */
-async function fetchLevelCSV(level) {
-  const res = await fetch(`${level}.csv?v=${Date.now()}`, { cache: "no-store" });
-  if (!res.ok) throw new Error("CSV load failed");
-  return { text: await res.text() };
-}
-
-function parseCSV(text) {
-  const lines = text.replace(/\r/g, "").split("\n").filter(Boolean);
-  const rows = [];
-
-  for (let i = 1; i < lines.length; i++) {
-    const cells = [];
-    let cur = "";
-    let inQuotes = false;
-
-    for (let ch of lines[i]) {
-      if (ch === '"') inQuotes = !inQuotes;
-      else if (ch === "," && !inQuotes) {
-        cells.push(cur);
-        cur = "";
-      } else cur += ch;
-    }
-    cells.push(cur);
-
-    rows.push({
-      category: (cells[0] || "").trim(),
-      question: (cells[1] || "").trim(),
-      answer: (cells[2] || "").trim()
-    });
-  }
-  return rows;
-}
-
-/* ---------- Question Flow ---------- */
 function nextQuestion() {
   clearAllTimers();
+  lastUserResponse = ""; // RESET unless explicitly saved
   hideTimer();
 
   currentQuestion = questionPool[Math.floor(Math.random() * questionPool.length)];
-
-  words = (currentQuestion.question || "").split(" ");
+  words = currentQuestion.question.split(" ");
   wordIndex = 0;
   readingDone = false;
 
@@ -259,45 +187,36 @@ function readNextWord() {
   if (wordIndex < words.length) {
     qBox().innerHTML += escapeHTML(words[wordIndex]) + "&nbsp;";
     wordIndex++;
-
-    const delayMs = Math.max(50, Math.round(1000 / (wordsPerSecond || 1)));
-    readingTimeout = setTimeout(readNextWord, delayMs);
+    const delay = Math.max(50, Math.round(1000 / wordsPerSecond));
+    readingTimeout = setTimeout(readNextWord, delay);
   } else {
     readingDone = true;
     startTimer(10);
   }
 }
 
-/* ---------- Buzz / Answer ---------- */
 function onBuzz() {
-  if (readingTimeout) {
-    clearTimeout(readingTimeout);
-    readingTimeout = null;
-  }
+  if (readingTimeout) clearTimeout(readingTimeout);
   if (!readingDone) startTimer(10);
   el("answer-box").style.display = "flex";
-  el("post-reveal").style.display = "none";
   el("answer").focus();
 }
 
 function submitAnswer() {
+  lastUserResponse = el("answer").value.trim();
   showAnswer();
 }
 
-function markCurrentForReview() {
-  addToReviewLog(currentQuestion);
-  setMessage("Saved to Review Log.");
+function showAnswer() {
+  setMessage("Answer: " + currentQuestion.answer);
+  el("answer-box").style.display = "none";
+  el("post-reveal").style.display = "block";
+  setTimeout(nextQuestion, 2000);
 }
 
-function showAnswer() {
-  const correct = (currentQuestion && currentQuestion.answer) ? currentQuestion.answer : "";
-  setMessage("Answer: " + correct);
-
-el("answer-box").style.display = "none";
-
-  el("post-reveal").style.display = "block";
-
-  setTimeout(nextQuestion, 2000);
+function markCurrentForReview() {
+  addToReviewLog(currentQuestion, lastUserResponse);
+  setMessage("Saved to Review Log.");
 }
 
 /* ---------- Timer ---------- */
@@ -305,11 +224,10 @@ function startTimer(seconds) {
   if (timerInterval) return;
   timer = seconds;
   showTimer();
-  updateTimer();
 
   timerInterval = setInterval(() => {
     timer--;
-    updateTimer();
+    el("timer").innerText = timer;
     if (timer <= 0) {
       clearAllTimers();
       showAnswer();
@@ -317,14 +235,9 @@ function startTimer(seconds) {
   }, 1000);
 }
 
-function updateTimer() {
-  el("timer").innerText = String(timer);
-}
-
 function clearAllTimers() {
   if (timerInterval) clearInterval(timerInterval);
   timerInterval = null;
-
   if (readingTimeout) clearTimeout(readingTimeout);
   readingTimeout = null;
 }
