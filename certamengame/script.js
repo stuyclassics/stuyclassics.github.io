@@ -31,9 +31,6 @@ document.addEventListener("DOMContentLoaded", () => {
   el("clear-review").addEventListener("click", clearReviewLog);
   el("mark-review").addEventListener("click", markCurrentForReview);
 
-  // Enter in game:
-  // - if answer box visible -> submit
-  // - else -> buzz
   document.addEventListener("keydown", (e) => {
     if (e.key !== "Enter") return;
     if (el("game").style.display === "none") return;
@@ -47,7 +44,6 @@ document.addEventListener("DOMContentLoaded", () => {
     else onBuzz();
   }, true);
 
-  // Read-speed slider (words/sec)
   const speed = el("speed");
   const label = el("speed-label");
 
@@ -140,7 +136,7 @@ function backToSetup() {
   el("game").style.display = "none";
   el("setup").style.display = "block";
   el("timer-card").style.display = "none";
-  qText().innerHTML = "";
+  clearQuestionText();
   el("answer").value = "";
   el("answer-box").style.display = "none";
   el("post-reveal").style.display = "none";
@@ -278,9 +274,7 @@ function nextQuestion() {
   wordIndex = 0;
   readingDone = false;
 
-  qText().innerHTML = "";
-  qBox().scrollTop = qBox().scrollHeight;
-
+  clearQuestionText();
   el("answer").value = "";
   el("answer-box").style.display = "none";
   el("post-reveal").style.display = "none";
@@ -289,12 +283,15 @@ function nextQuestion() {
   readNextWord();
 }
 
+/* KEY FIX:
+   Append as real text nodes, not innerHTML string rewrites,
+   so the already-written text doesn't get re-laid-out each tick. */
 function readNextWord() {
   if (wordIndex < words.length) {
-    qText().innerHTML += escapeHTML(words[wordIndex]) + "&nbsp;";
+    appendWordStable(words[wordIndex]);
     wordIndex++;
 
-    // Keep the visible content "stuck" to the bottom of the question box.
+    // Keep bottom anchored without reflow-jitter
     qBox().scrollTop = qBox().scrollHeight;
 
     const delayMs = Math.max(50, Math.round(1000 / (wordsPerSecond || 1)));
@@ -303,6 +300,19 @@ function readNextWord() {
     readingDone = true;
     startTimer(10);
   }
+}
+
+function appendWordStable(word) {
+  const span = document.createElement("span");
+  span.textContent = (wordIndex === 0 ? "" : " ") + word;
+  qText().appendChild(span);
+}
+
+function clearQuestionText() {
+  // remove children without assigning innerHTML repeatedly during reading
+  const node = qText();
+  while (node.firstChild) node.removeChild(node.firstChild);
+  qBox().scrollTop = 0;
 }
 
 /* ---------- Buzz / Answer ---------- */
