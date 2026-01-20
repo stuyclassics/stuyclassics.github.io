@@ -3,112 +3,177 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Certamen Practice</title>
-  <link rel="stylesheet" href="style.css?v=16" />
+  <title>Certamen Search</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: "Garamond", "Times New Roman", serif;
+      background: #fdfcf9;
+      color: #2f1a47;
+    }
+
+    header {
+      padding: 16px 0;
+      text-align: center;
+      border-bottom: 3px solid goldenrod;
+      background: #fff;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 2.2em;
+      color: #4b0082;
+    }
+
+    main {
+      padding: 16px;
+      display: grid;
+      gap: 12px;
+      justify-items: center;
+    }
+
+    .card {
+      width: min(1100px, 94vw);
+      background: #f7f3ff;
+      border: 2px solid #4b0082;
+      border-radius: 12px;
+      padding: 16px;
+    }
+
+    .controls {
+      display: grid;
+      gap: 10px;
+    }
+
+    .row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    input[type="text"] {
+      flex: 1;
+      min-width: 260px;
+      padding: 10px 12px;
+      border: 2px solid #4b0082;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+
+    button {
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: none;
+      background: #4b0082;
+      color: #fff;
+      cursor: pointer;
+      font-size: 16px;
+      box-shadow: 0 3px 0 rgba(75,0,130,0.35);
+    }
+
+    button:hover {
+      background: goldenrod;
+      color: #2f1a47;
+    }
+
+    label {
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+      font-size: 16px;
+    }
+
+    .status {
+      font-weight: bold;
+      color: #4b0082;
+      min-height: 22px;
+    }
+
+    .results {
+      display: grid;
+      gap: 12px;
+    }
+
+    .result {
+      background: #fff;
+      border: 1px solid rgba(75,0,130,0.35);
+      border-radius: 10px;
+      padding: 12px;
+    }
+
+    .meta {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: baseline;
+      margin-bottom: 6px;
+      color: #4b0082;
+      font-weight: bold;
+    }
+
+    .pill {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: rgba(75,0,130,0.10);
+      border: 1px solid rgba(75,0,130,0.25);
+      font-size: 14px;
+      font-weight: bold;
+      color: #4b0082;
+    }
+
+    .qa {
+      display: grid;
+      gap: 6px;
+    }
+
+    .q strong,
+    .a strong {
+      color: #4b0082;
+    }
+
+    .muted {
+      color: rgba(47,26,71,0.75);
+      font-size: 14px;
+      margin-top: 6px;
+    }
+  </style>
 </head>
 <body>
-  <header class="topbar">
-    <h1>Certamen Practice</h1>
+  <header>
+    <h1>Certamen Search</h1>
   </header>
 
   <main>
-    <section id="setup" class="card">
-      <h3>Select Level</h3>
-      <label><input type="radio" name="level" value="novice" checked> Novice</label>
-      <label><input type="radio" name="level" value="intermediate"> Intermediate</label>
-      <label><input type="radio" name="level" value="advanced"> Advanced</label>
-
-      <h3>Categories</h3>
-
-      <!-- Advanced category search + quick selects -->
-      <div class="advanced-bar">
-        <input id="category-search" type="text" placeholder="Search categories..." autocomplete="off" />
-        <div class="advanced-buttons">
-          <button id="cat-all" type="button">All</button>
-          <button id="cat-none" type="button">None</button>
-        </div>
+    <section class="card controls">
+      <div class="row">
+        <input id="query" type="text" placeholder="Type a keyword (searches question + answer)..." autocomplete="off" />
+        <button id="search" type="button">Search</button>
+        <button id="clear" type="button">Clear</button>
       </div>
 
-      <div id="category-list" class="category-list">
-        <label class="cat-item"><input type="checkbox" value="literature"> Literature</label>
-        <label class="cat-item"><input type="checkbox" value="language"> Language</label>
-        <label class="cat-item"><input type="checkbox" value="history"> History</label>
-        <label class="cat-item"><input type="checkbox" value="culture"> Culture</label>
-        <label class="cat-item"><input type="checkbox" value="mythology"> Mythology</label>
+      <div class="row">
+        <label>
+          <input id="show-source" type="checkbox" />
+          Show source file
+        </label>
+        <label>
+          <input id="show-empty-query" type="checkbox" />
+          Allow empty query (show all)
+        </label>
       </div>
 
-      <h3>Read Speed</h3>
-      <input type="range" id="speed" min="0.8" max="6.0" step="0.1" value="1.4" />
-      <div id="speed-label">1.4 words/sec</div>
-
-      <div class="actions">
-        <button id="start" type="button">Start Game</button>
-      </div>
+      <div id="status" class="status"></div>
     </section>
 
-    <section id="game" class="card" style="display:none;">
-      <div class="top-actions">
-        <button id="review-log" type="button">Review Log</button>
-      </div>
-
-      <div id="question-box" class="question">
-        <span id="question-text"></span>
-      </div>
-
-      <div id="message" class="message"></div>
-
-      <div class="actions">
-        <button id="buzz" type="button">Buzz</button>
-        <button id="skip" type="button">Skip</button>
-      </div>
-
-      <div id="answer-box" class="answer-card" style="display:none;">
-        <input type="text" id="answer" placeholder="Type your answer..." autocomplete="off" />
-        <button id="submit-answer" type="button">Submit</button>
-      </div>
-
-      <div id="post-reveal" class="post-reveal" style="display:none;">
-        <button id="mark-review" type="button">Mark for Review</button>
-      </div>
-    </section>
-
-    <section id="timer-card" class="card timer-card" style="display:none;">
-      <div id="timer-text">Time Left: <span id="timer">10</span>s</div>
-    </section>
-
-    <section id="review" class="card" style="display:none;">
-      <h3>Review Log</h3>
-
-      <!-- Advanced search in review log -->
-      <div class="review-filters">
-        <input id="review-search" type="text" placeholder="Search question, your response, or answer..." autocomplete="off" />
-        <div class="review-filter-row">
-          <select id="review-filter-category">
-            <option value="">All Categories</option>
-          </select>
-          <select id="review-filter-level">
-            <option value="">All Levels</option>
-            <option value="novice">Novice</option>
-            <option value="intermediate">Intermediate</option>
-            <option value="advanced">Advanced</option>
-          </select>
-          <button id="review-clear-filters" type="button">Clear</button>
-        </div>
-      </div>
-
-      <div class="review-actions">
-        <button id="clear-review" type="button">Clear Log</button>
-        <button id="close-review" type="button">Back to Game</button>
-      </div>
-
-      <div id="review-list" class="review-list"></div>
+    <section class="card">
+      <div id="results" class="results"></div>
     </section>
   </main>
 
-  <footer class="bottombar">
-    <button id="back" type="button">Return to Setup</button>
-  </footer>
-
-  <script src="script.js?v=16"></script>
+  <script src="search.js"></script>
 </body>
 </html>

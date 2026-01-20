@@ -1,499 +1,111 @@
-let questionPool = [];
-let currentQuestion = null;
-let words = [];
-let wordIndex = 0;
-
-let timer = 10;
-let timerInterval = null;
-let readingTimeout = null;
-let readingDone = false;
-
-let wordsPerSecond = 1.4;
-
-// per-question response (NOT saved unless Mark for Review is pressed)
-let lastUserResponse = "";
-
-// stores current selected level for saving into review log entries
-let currentLevel = "novice";
-
-const REVIEW_KEY = "certamen_review_log_v4";
+// Certamen Search (static, no server)
+// Loads CSVs from ../certamengame/... and searches QUESTION + ANSWER case-insensitively.
 
 const el = (id) => document.getElementById(id);
-const qBox = () => el("question-box");
-const qText = () => el("question-text");
 
-// review filter state
-const reviewFilters = {
-  q: "",
-  category: "",
-  level: ""
+const STATE = {
+  loaded: false,
+  loading: false,
+  items: [], // { level, category, question, answer, source }
+  sourcesTried: []
 };
 
-document.addEventListener("DOMContentLoaded", () => {
-  el("start").addEventListener("click", startGame);
-  el("buzz").addEventListener("click", onBuzz);
-  el("skip").addEventListener("click", nextQuestion);
-  el("submit-answer").addEventListener("click", submitAnswer);
-  el("back").addEventListener("click", backToSetup);
+document.addEventListener("DOMContentLoaded", async () => {
+  el("search").addEventListener("click", runSearchFromUI);
+  el("clear").addEventListener("click", clearUI);
 
-  el("review-log").addEventListener("click", openReview);
-  el("close-review").addEventListener("click", closeReview);
-  el("clear-review").addEventListener("click", clearReviewLog);
-  el("mark-review").addEventListener("click", markCurrentForReview);
-
-  // Enter in game:
-  // - if answer box visible -> submit
-  // - else -> buzz
-  document.addEventListener("keydown", (e) => {
-    if (e.key !== "Enter") return;
-    if (el("game").style.display === "none") return;
-
-    e.preventDefault();
-    e.stopPropagation();
-    if (typeof e.stopImmediatePropagation === "function") e.stopImmediatePropagation();
-
-    const answerBoxVisible = el("answer-box").style.display !== "none";
-    if (answerBoxVisible) submitAnswer();
-    else onBuzz();
-  }, true);
-
-  // Read-speed slider (words/sec)
-  const speed = el("speed");
-  const speedLabel = el("speed-label");
-  function syncSpeedUI() {
-    wordsPerSecond = Number(speed.value) || 1.4;
-    speedLabel.textContent = `${wordsPerSecond.toFixed(1)} words/sec`;
-  }
-  syncSpeedUI();
-  speed.addEventListener("input", syncSpeedUI);
-
-  // Setup: category search + select all/none
-  el("category-search").addEventListener("input", filterCategoryCheckboxes);
-  el("cat-all").addEventListener("click", () => setAllCategories(true));
-  el("cat-none").addEventListener("click", () => setAllCategories(false));
-
-  // Review: advanced search filters
-  el("review-search").addEventListener("input", (e) => {
-    reviewFilters.q = (e.target.value || "").trim().toLowerCase();
-    renderReviewLog();
+  el("query").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      runSearchFromUI();
+    }
   });
-  el("review-filter-category").addEventListener("change", (e) => {
-    reviewFilters.category = (e.target.value || "").trim().toLowerCase();
-    renderReviewLog();
-  });
-  el("review-filter-level").addEventListener("change", (e) => {
-    reviewFilters.level = (e.target.value || "").trim().toLowerCase();
-    renderReviewLog();
-  });
-  el("review-clear-filters").addEventListener("click", () => {
-    reviewFilters.q = "";
-    reviewFilters.category = "";
-    reviewFilters.level = "";
-    el("review-search").value = "";
-    el("review-filter-category").value = "";
-    el("review-filter-level").value = "";
-    renderReviewLog();
-  });
+
+  setStatus("Loading CSVs...");
+  await loadAllCSVs();
+  setStatus(`Loaded ${STATE.items.length} questions.`);
 });
 
-/* ---------- Setup helpers ---------- */
-function setAllCategories(checked) {
-  const boxes = document.querySelectorAll('#category-list input[type="checkbox"]');
-  boxes.forEach(cb => cb.checked = checked);
+function clearUI() {
+  el("query").value = "";
+  el("results").innerHTML = "";
+  setStatus(STATE.loaded ? `Loaded ${STATE.items.length} questions.` : "");
 }
 
-function filterCategoryCheckboxes() {
-  const query = (el("category-search").value || "").trim().toLowerCase();
-  const labels = document.querySelectorAll("#category-list .cat-item");
-
-  labels.forEach(label => {
-    const text = (label.textContent || "").trim().toLowerCase();
-    label.style.display = (!query || text.includes(query)) ? "" : "none";
-  });
-}
-
-/* ---------- Review Log ---------- */
-function loadReviewLog() {
-  try {
-    const raw = localStorage.getItem(REVIEW_KEY);
-    const arr = raw ? JSON.parse(raw) : [];
-    return Array.isArray(arr) ? arr : [];
-  } catch {
-    return [];
-  }
-}
-
-function saveReviewLog(arr) {
-  localStorage.setItem(REVIEW_KEY, JSON.stringify(arr));
-}
-
-function prettyCategory(cat) {
-  const c = String(cat || "").trim();
-  if (!c) return "";
-  return c
-    .toLowerCase()
-    .split(/\s+/)
-    .map(w => (w ? w[0].toUpperCase() + w.slice(1) : ""))
-    .join(" ");
-}
-
-function prettyLevel(level) {
-  const v = String(level || "").trim().toLowerCase();
-  if (!v) return "";
-  return v[0].toUpperCase() + v.slice(1);
-}
-
-function makeReviewId(q, level) {
-  const s = `${level}||${q.category}||${q.question}||${q.answer}`;
-  let h = 0;
-  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
-  return String(h);
-}
-
-function addToReviewLog(q, response) {
-  if (!q) return;
-
-  const log = loadReviewLog();
-  const id = makeReviewId(q, currentLevel);
-
-  if (log.some(item => item.id === id)) return;
-
-  log.unshift({
-    id,
-    level: currentLevel,
-    category: prettyCategory(q.category),
-    question: String(q.question || "").trim(),
-    answer: String(q.answer || "").trim(),
-    response: (response && response.trim()) ? response.trim() : "(no response)",
-    addedAt: Date.now()
-  });
-
-  saveReviewLog(log);
-}
-
-function rebuildReviewCategoryDropdown(log) {
-  const sel = el("review-filter-category");
-  const wanted = (sel.value || "").trim();
-
-  const cats = Array.from(new Set(
-    log.map(x => String(x.category || "").trim()).filter(Boolean)
-  )).sort((a, b) => a.localeCompare(b));
-
-  sel.innerHTML = `<option value="">All Categories</option>` +
-    cats.map(c => `<option value="${escapeAttr(c)}">${escapeHTML(c)}</option>`).join("");
-
-  sel.value = wanted;
-}
-
-function passesReviewFilters(item) {
-  const cat = String(item.category || "").trim().toLowerCase();
-  const lvl = String(item.level || "").trim().toLowerCase();
-
-  if (reviewFilters.category && cat !== reviewFilters.category) return false;
-  if (reviewFilters.level && lvl !== reviewFilters.level) return false;
-
-  if (reviewFilters.q) {
-    const hay = (
-      String(item.category || "") + " " +
-      String(item.level || "") + " " +
-      String(item.question || "") + " " +
-      String(item.response || "") + " " +
-      String(item.answer || "")
-    ).toLowerCase();
-    if (!hay.includes(reviewFilters.q)) return false;
-  }
-
-  return true;
-}
-
-function renderReviewLog() {
-  const list = el("review-list");
-  const log = loadReviewLog();
-
-  rebuildReviewCategoryDropdown(log);
-
-  const filtered = log.filter(passesReviewFilters);
-
-  if (!filtered.length) {
-    list.innerHTML = `<div class="review-empty">No matches.</div>`;
+function runSearchFromUI() {
+  if (!STATE.loaded) {
+    setStatus("Still loading CSVs...");
     return;
   }
 
-  list.innerHTML = filtered.map(item => `
-    <div class="review-item">
-      <div class="review-meta">
-        <span class="pill">${escapeHTML(prettyLevel(item.level))}</span>
-        <span class="pill">${escapeHTML(item.category)}</span>
+  const q = el("query").value.trim();
+  const allowEmpty = el("show-empty-query").checked;
+
+  if (!q && !allowEmpty) {
+    setStatus("Type a keyword (or enable: Allow empty query).");
+    el("results").innerHTML = "";
+    return;
+  }
+
+  const results = searchItems(q);
+  renderResults(results, q);
+}
+
+function setStatus(msg) {
+  el("status").textContent = msg;
+}
+
+function searchItems(keyword) {
+  const key = String(keyword || "").toLowerCase();
+  if (!key) return STATE.items.slice();
+
+  return STATE.items.filter((it) => {
+    const q = (it.question || "").toLowerCase();
+    const a = (it.answer || "").toLowerCase();
+    return q.includes(key) || a.includes(key);
+  });
+}
+
+function renderResults(results, keyword) {
+  const showSource = el("show-source").checked;
+  const container = el("results");
+
+  if (!results.length) {
+    container.innerHTML = `<div class="muted">No matches.</div>`;
+    setStatus(`0 matches for "${keyword}".`);
+    return;
+  }
+
+  // Keep it simple: limit rendering if someone does empty-query on huge data
+  const MAX = 300;
+  const trimmed = results.slice(0, MAX);
+
+  setStatus(
+    results.length === trimmed.length
+      ? `${results.length} match(es) for "${keyword}".`
+      : `${results.length} match(es) for "${keyword}". Showing first ${MAX}.`
+  );
+
+  container.innerHTML = trimmed.map((it) => {
+    const metaBits = [
+      `<span class="pill">${escapeHTML(String(it.category || ""))}</span>`,
+      `<span class="pill">${escapeHTML(String(it.level || ""))}</span>`
+    ];
+
+    if (showSource) {
+      metaBits.push(`<span class="pill">${escapeHTML(String(it.source || ""))}</span>`);
+    }
+
+    return `
+      <div class="result">
+        <div class="meta">${metaBits.join("")}</div>
+        <div class="qa">
+          <div class="q"><strong>Q:</strong> ${escapeHTML(String(it.question || ""))}</div>
+          <div class="a"><strong>A:</strong> ${escapeHTML(String(it.answer || ""))}</div>
+        </div>
       </div>
-      <div class="review-q">${escapeHTML(item.question)}</div>
-      <div class="review-r"><span class="review-a-label">Your response:</span> ${escapeHTML(item.response)}</div>
-      <div class="review-a"><span class="review-a-label">Answer:</span> ${escapeHTML(item.answer)}</div>
-    </div>
-  `).join("");
-}
-
-function clearReviewLog() {
-  localStorage.removeItem(REVIEW_KEY);
-  renderReviewLog();
-}
-
-/* ---------- Navigation ---------- */
-function backToSetup() {
-  clearAllTimers();
-  el("review").style.display = "none";
-  el("game").style.display = "none";
-  el("setup").style.display = "block";
-  el("timer-card").style.display = "none";
-  clearQuestionText();
-  el("answer").value = "";
-  el("answer-box").style.display = "none";
-  el("post-reveal").style.display = "none";
-  setMessage("");
-}
-
-function openReview() {
-  el("setup").style.display = "none";
-  el("game").style.display = "none";
-  el("timer-card").style.display = "none";
-  el("review").style.display = "block";
-  renderReviewLog();
-}
-
-function closeReview() {
-  el("review").style.display = "none";
-  if (questionPool.length) {
-    el("game").style.display = "block";
-    el("timer-card").style.display = timerInterval ? "block" : "none";
-  } else {
-    el("setup").style.display = "block";
-  }
-}
-
-/* ---------- Start ---------- */
-async function startGame() {
-  clearAllTimers();
-
-  const level = document.querySelector('input[name="level"]:checked').value;
-  currentLevel = level;
-
-  const categories = Array.from(
-    document.querySelectorAll('#category-list input[type="checkbox"]:checked')
-  ).map(cb => cb.value.toLowerCase());
-
-  try {
-    const { text } = await fetchLevelCSV(level);
-    const allQs = parseCSV(text);
-
-    questionPool = categories.length
-      ? allQs.filter(q => categories.includes(q.category.toLowerCase()))
-      : allQs.slice();
-
-    if (!questionPool.length) {
-      setMessage("No questions found for that selection.");
-      return;
-    }
-
-    el("setup").style.display = "none";
-    el("review").style.display = "none";
-    el("game").style.display = "block";
-    el("timer-card").style.display = "none";
-
-    nextQuestion();
-  } catch (err) {
-    console.error(err);
-    setMessage("Couldn't load questions. Ensure novice.csv/intermediate.csv/advanced.csv are next to index.html.");
-  }
-}
-
-async function fetchLevelCSV(level) {
-  const cap = level.charAt(0).toUpperCase() + level.slice(1);
-  const candidates = [
-    `./${level}.csv`,
-    `${level}.csv`,
-    `./${cap}.csv`,
-    `${cap}.csv`,
-    `./data/${level}.csv`,
-    `data/${level}.csv`
-  ];
-
-  let lastErr = null;
-
-  for (const path of candidates) {
-    try {
-      const res = await fetch(`${path}?v=${Date.now()}`, { cache: "no-store" });
-      if (res.ok) return { text: await res.text(), usedPath: path };
-      lastErr = new Error(`HTTP ${res.status} for ${path}`);
-    } catch (e) {
-      lastErr = e;
-    }
-  }
-  throw lastErr || new Error("CSV not found");
-}
-
-/* ---------- CSV parsing (quotes-safe) ---------- */
-function parseCSV(text) {
-  const lines = text.replace(/\r/g, "").split("\n").filter(Boolean);
-  if (lines.length <= 1) return [];
-
-  const rows = [];
-
-  for (let i = 1; i < lines.length; i++) {
-    const line = lines[i];
-    const cells = [];
-    let cur = "";
-    let inQuotes = false;
-
-    for (let j = 0; j < line.length; j++) {
-      const ch = line[j];
-      if (ch === '"') {
-        if (inQuotes && line[j + 1] === '"') {
-          cur += '"';
-          j++;
-        } else {
-          inQuotes = !inQuotes;
-        }
-      } else if (ch === "," && !inQuotes) {
-        cells.push(cur);
-        cur = "";
-      } else {
-        cur += ch;
-      }
-    }
-    cells.push(cur);
-
-    rows.push({
-      category: (cells[0] || "").trim(),
-      question: (cells[1] || "").trim(),
-      answer: (cells[2] || "").trim()
-    });
-  }
-
-  return rows;
-}
-
-/* ---------- Question Flow ---------- */
-function nextQuestion() {
-  clearAllTimers();
-  hideTimer();
-
-  lastUserResponse = "";
-
-  currentQuestion = questionPool[Math.floor(Math.random() * questionPool.length)];
-
-  words = (currentQuestion.question || "").split(" ");
-  wordIndex = 0;
-  readingDone = false;
-
-  clearQuestionText();
-  el("answer").value = "";
-  el("answer-box").style.display = "none";
-  el("post-reveal").style.display = "none";
-  setMessage("");
-
-  readNextWord();
-}
-
-function readNextWord() {
-  if (wordIndex < words.length) {
-    appendWordStable(words[wordIndex]);
-    wordIndex++;
-
-    qBox().scrollTop = qBox().scrollHeight;
-
-    const delayMs = Math.max(50, Math.round(1000 / (wordsPerSecond || 1)));
-    readingTimeout = setTimeout(readNextWord, delayMs);
-  } else {
-    readingDone = true;
-    startTimer(10);
-  }
-}
-
-function appendWordStable(word) {
-  const span = document.createElement("span");
-  span.textContent = (wordIndex === 0 ? "" : " ") + word;
-  qText().appendChild(span);
-}
-
-function clearQuestionText() {
-  const node = qText();
-  while (node.firstChild) node.removeChild(node.firstChild);
-  qBox().scrollTop = 0;
-}
-
-/* ---------- Buzz / Answer ---------- */
-function onBuzz() {
-  if (readingTimeout) {
-    clearTimeout(readingTimeout);
-    readingTimeout = null;
-  }
-  if (!readingDone) startTimer(10);
-  el("answer-box").style.display = "flex";
-  el("post-reveal").style.display = "none";
-  el("answer").focus();
-}
-
-function submitAnswer() {
-  lastUserResponse = el("answer").value.trim();
-  showAnswer();
-}
-
-function showAnswer() {
-  if (!lastUserResponse) lastUserResponse = el("answer").value.trim();
-
-  const correct = (currentQuestion && currentQuestion.answer) ? currentQuestion.answer : "";
-  setMessage("Answer: " + correct);
-
-  el("answer-box").style.display = "none";
-  el("post-reveal").style.display = "block";
-
-  setTimeout(nextQuestion, 2000);
-}
-
-function markCurrentForReview() {
-  addToReviewLog(currentQuestion, lastUserResponse);
-  setMessage("Saved to Review Log.");
-}
-
-/* ---------- Timer ---------- */
-function startTimer(seconds) {
-  if (timerInterval) return;
-  timer = seconds;
-  showTimer();
-  updateTimerUI();
-
-  timerInterval = setInterval(() => {
-    timer--;
-    updateTimerUI();
-    if (timer <= 0) {
-      clearAllTimers();
-      showAnswer();
-    }
-  }, 1000);
-}
-
-function updateTimerUI() {
-  el("timer").innerText = String(timer);
-}
-
-function clearAllTimers() {
-  if (timerInterval) clearInterval(timerInterval);
-  timerInterval = null;
-
-  if (readingTimeout) clearTimeout(readingTimeout);
-  readingTimeout = null;
-}
-
-function showTimer() {
-  el("timer-card").style.display = "block";
-}
-
-function hideTimer() {
-  el("timer-card").style.display = "none";
-}
-
-/* ---------- Utils ---------- */
-function setMessage(msg) {
-  el("message").innerText = msg;
+    `;
+  }).join("");
 }
 
 function escapeHTML(s) {
@@ -505,6 +117,158 @@ function escapeHTML(s) {
     .replaceAll("'", "&#39;");
 }
 
-function escapeAttr(s) {
-  return String(s).replaceAll('"', "&quot;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+/* ---------------- CSV Loading ---------------- */
+
+async function loadAllCSVs() {
+  if (STATE.loading) return;
+  STATE.loading = true;
+
+  // You can add more filenames here if you create more levels later.
+  const files = [
+    { level: "novice", names: ["novice.csv", "Novice.csv"] },
+    { level: "intermediate", names: ["intermediate.csv", "Intermediate.csv"] },
+    { level: "advanced", names: ["advanced.csv", "Advanced.csv"] }
+  ];
+
+  const baseCandidates = [
+    "../certamengame/data/",
+    "../certamengame/",
+    "../certamengame/csv/",
+    "../certamengame/questions/",
+    "../certamengame/data/csv/"
+  ];
+
+  const loadedAny = [];
+
+  for (const f of files) {
+    const { text, usedPath } = await fetchFirstAvailableCSV(baseCandidates, f.names);
+    if (!text) {
+      loadedAny.push({ level: f.level, ok: false, usedPath: "" });
+      continue;
+    }
+
+    const rows = parseCSV(text);
+    const normalized = normalizeRows(rows);
+
+    for (const r of normalized) {
+      STATE.items.push({
+        level: f.level,
+        category: r.category,
+        question: r.question,
+        answer: r.answer,
+        source: usedPath
+      });
+    }
+
+    loadedAny.push({ level: f.level, ok: true, usedPath });
+  }
+
+  STATE.loaded = true;
+  STATE.loading = false;
+
+  const okCount = loadedAny.filter(x => x.ok).length;
+  if (okCount === 0) {
+    setStatus("Could not load any CSVs. Check paths: ../certamengame/data/novice.csv etc.");
+  }
+}
+
+async function fetchFirstAvailableCSV(baseDirs, filenames) {
+  let lastErr = null;
+
+  for (const base of baseDirs) {
+    for (const name of filenames) {
+      const path = `${base}${name}`;
+      try {
+        const res = await fetch(`${path}?v=${Date.now()}`, { cache: "no-store" });
+        if (res.ok) {
+          const text = await res.text();
+          return { text, usedPath: path };
+        }
+        lastErr = new Error(`HTTP ${res.status} for ${path}`);
+      } catch (e) {
+        lastErr = e;
+      }
+    }
+  }
+
+  console.warn("CSV not found. Last error:", lastErr);
+  return { text: "", usedPath: "" };
+}
+
+/* ---------------- Robust CSV Parser ----------------
+   - Handles commas in quotes
+   - Handles doubled quotes "" inside quoted fields
+   - Assumes no internal newlines in fields (your cleaned constraint), but still parses safely line-by-line.
+----------------------------------------------------- */
+
+function parseCSV(text) {
+  const lines = String(text).replace(/\r/g, "").split("\n").filter((l) => l.length > 0);
+  if (!lines.length) return [];
+
+  // If there is a header, we skip it. If not, we still parse all lines and normalize later.
+  // We detect header loosely by checking if the first row contains "category" and "question".
+  const firstRow = parseCSVLine(lines[0]);
+  const hasHeader = looksLikeHeader(firstRow);
+
+  const out = [];
+  const start = hasHeader ? 1 : 0;
+
+  for (let i = start; i < lines.length; i++) {
+    const row = parseCSVLine(lines[i]);
+    if (row.length === 0) continue;
+    out.push(row);
+  }
+
+  return out;
+}
+
+function looksLikeHeader(cells) {
+  const joined = cells.map(c => String(c || "").toLowerCase().trim());
+  const hasCategory = joined.some(x => x === "category");
+  const hasQuestion = joined.some(x => x === "question");
+  const hasAnswer = joined.some(x => x === "answer");
+  return hasCategory && hasQuestion && hasAnswer;
+}
+
+function parseCSVLine(line) {
+  const cells = [];
+  let cur = "";
+  let inQuotes = false;
+
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+
+    if (ch === '"') {
+      if (inQuotes && line[i + 1] === '"') {
+        cur += '"';
+        i++;
+      } else {
+        inQuotes = !inQuotes;
+      }
+      continue;
+    }
+
+    if (ch === "," && !inQuotes) {
+      cells.push(cur);
+      cur = "";
+      continue;
+    }
+
+    cur += ch;
+  }
+
+  cells.push(cur);
+  return cells;
+}
+
+function normalizeRows(rows) {
+  // Expected columns: category, question, answer
+  // If a CSV line has extra trailing columns, we ignore them.
+  // If it has fewer, we fill with empty.
+  return rows.map((cells) => {
+    const category = (cells[0] || "").trim();
+    const question = (cells[1] || "").trim();
+    const answer = (cells[2] || "").trim();
+    return { category, question, answer };
+  }).filter(r => r.category || r.question || r.answer);
 }
