@@ -10,14 +10,14 @@ let readingDone = false;
 
 let wordsPerSecond = 1.4;
 
-// Stores your response for the CURRENT question only.
-// This is NOT saved unless you click Mark for Review.
+// per-question response (NOT saved unless Mark for Review is pressed)
 let lastUserResponse = "";
 
 const REVIEW_KEY = "certamen_review_log_v3";
 
 const el = (id) => document.getElementById(id);
 const qBox = () => el("question-box");
+const qText = () => el("question-text");
 
 document.addEventListener("DOMContentLoaded", () => {
   el("start").addEventListener("click", startGame);
@@ -140,7 +140,7 @@ function backToSetup() {
   el("game").style.display = "none";
   el("setup").style.display = "block";
   el("timer-card").style.display = "none";
-  qBox().innerHTML = "";
+  qText().innerHTML = "";
   el("answer").value = "";
   el("answer-box").style.display = "none";
   el("post-reveal").style.display = "none";
@@ -270,7 +270,6 @@ function nextQuestion() {
   clearAllTimers();
   hideTimer();
 
-  // reset per-question response (NOT saved unless Mark for Review is pressed)
   lastUserResponse = "";
 
   currentQuestion = questionPool[Math.floor(Math.random() * questionPool.length)];
@@ -279,7 +278,9 @@ function nextQuestion() {
   wordIndex = 0;
   readingDone = false;
 
-  qBox().innerHTML = "";
+  qText().innerHTML = "";
+  qBox().scrollTop = qBox().scrollHeight;
+
   el("answer").value = "";
   el("answer-box").style.display = "none";
   el("post-reveal").style.display = "none";
@@ -290,8 +291,11 @@ function nextQuestion() {
 
 function readNextWord() {
   if (wordIndex < words.length) {
-    qBox().innerHTML += escapeHTML(words[wordIndex]) + "&nbsp;";
+    qText().innerHTML += escapeHTML(words[wordIndex]) + "&nbsp;";
     wordIndex++;
+
+    // Keep the visible content "stuck" to the bottom of the question box.
+    qBox().scrollTop = qBox().scrollHeight;
 
     const delayMs = Math.max(50, Math.round(1000 / (wordsPerSecond || 1)));
     readingTimeout = setTimeout(readNextWord, delayMs);
@@ -319,7 +323,6 @@ function submitAnswer() {
 }
 
 function showAnswer() {
-  // If timer runs out while you're typing (no submit), capture whatever is currently typed
   if (!lastUserResponse) lastUserResponse = el("answer").value.trim();
 
   const correct = (currentQuestion && currentQuestion.answer) ? currentQuestion.answer : "";

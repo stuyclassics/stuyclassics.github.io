@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Certamen Practice</title>
-  <link rel="stylesheet" href="style.css?v=13" />
+  <link rel="stylesheet" href="style.css?v=14" />
 </head>
 <body>
   <header class="topbar">
@@ -27,14 +27,7 @@
       <label><input type="checkbox" value="mythology"> Mythology</label>
 
       <h3>Read Speed</h3>
-      <input
-        type="range"
-        id="speed"
-        min="0.8"
-        max="6.0"
-        step="0.1"
-        value="1.4"
-      />
+      <input type="range" id="speed" min="0.8" max="6.0" step="0.1" value="1.4" />
       <div id="speed-label">1.4 words/sec</div>
 
       <div class="actions">
@@ -48,7 +41,11 @@
         <button id="review-log" type="button">Review Log</button>
       </div>
 
-      <div id="question-box" class="question"></div>
+      <!-- IMPORTANT: question text is now inside #question-text so we can anchor/scroll cleanly -->
+      <div id="question-box" class="question">
+        <span id="question-text"></span>
+      </div>
+
       <div id="message" class="message"></div>
 
       <div class="actions">
@@ -90,6 +87,6 @@
     <button id="back" type="button">Return to Setup</button>
   </footer>
 
-  <script src="script.js?v=13"></script>
+  <script src="script.js?v=14"></script>
 </body>
 </html>
