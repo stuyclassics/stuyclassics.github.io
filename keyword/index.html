@@ -4,63 +4,223 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Certamen Search</title>
-  <link rel="stylesheet" href="style.css?v=17" />
+  <style>
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: "Garamond", "Times New Roman", serif;
+      background: #fdfcf9;
+      color: #2f1a47;
+    }
+
+    header {
+      padding: 16px 0;
+      text-align: center;
+      border-bottom: 3px solid goldenrod;
+      background: #ffffff;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 2.2em;
+      color: #4b0082;
+    }
+
+    main {
+      padding: 16px;
+      display: grid;
+      gap: 12px;
+      justify-items: center;
+      align-content: start;
+    }
+
+    .card {
+      width: min(1100px, 94vw);
+      background: #f7f3ff;
+      border: 2px solid #4b0082;
+      border-radius: 12px;
+      padding: 16px;
+    }
+
+    .controls {
+      display: grid;
+      gap: 10px;
+    }
+
+    .row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    input[type="text"] {
+      flex: 1;
+      min-width: 260px;
+      padding: 10px 12px;
+      border: 2px solid #4b0082;
+      border-radius: 8px;
+      font-size: 16px;
+      background: #fff;
+      color: #2f1a47;
+    }
+
+    button {
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: none;
+      background: #4b0082;
+      color: #fff;
+      cursor: pointer;
+      font-size: 16px;
+      box-shadow: 0 3px 0 rgba(75,0,130,0.35);
+    }
+
+    button:hover {
+      background: goldenrod;
+      color: #2f1a47;
+    }
+
+    label {
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+      font-size: 16px;
+    }
+
+    .status {
+      font-weight: bold;
+      color: #4b0082;
+      min-height: 22px;
+      word-break: break-word;
+    }
+
+    .hint {
+      color: rgba(47,26,71,0.8);
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    .results {
+      display: grid;
+      gap: 12px;
+    }
+
+    .result {
+      background: #fff;
+      border: 1px solid rgba(75,0,130,0.35);
+      border-radius: 10px;
+      padding: 12px;
+    }
+
+    .meta {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: baseline;
+      margin-bottom: 6px;
+      color: #4b0082;
+      font-weight: bold;
+    }
+
+    .pill {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: rgba(75,0,130,0.10);
+      border: 1px solid rgba(75,0,130,0.25);
+      font-size: 14px;
+      font-weight: bold;
+      color: #4b0082;
+    }
+
+    .qa {
+      display: grid;
+      gap: 6px;
+    }
+
+    .q strong,
+    .a strong {
+      color: #4b0082;
+    }
+
+    .muted {
+      color: rgba(47,26,71,0.75);
+      font-size: 14px;
+    }
+
+    .danger {
+      color: #b22222;
+      font-weight: bold;
+    }
+
+    .filebox {
+      display: none;
+      margin-top: 6px;
+      padding: 12px;
+      background: rgba(255,255,255,0.7);
+      border: 1px solid rgba(75,0,130,0.25);
+      border-radius: 10px;
+    }
+
+    .filebox.visible {
+      display: block;
+    }
+
+    input[type="file"] {
+      width: 100%;
+    }
+  </style>
 </head>
 <body>
-  <header class="topbar">
+  <header>
     <h1>Certamen Search</h1>
   </header>
 
   <main>
-    <section class="card">
-      <h3>Search</h3>
-
-      <div class="search-row">
-        <input id="query" type="text" placeholder="Type keyword..." autocomplete="off" />
+    <section class="card controls">
+      <div class="row">
+        <input id="query" type="text" placeholder="Type a keyword (searches question + answer)..." autocomplete="off" />
         <button id="search" type="button">Search</button>
         <button id="clear" type="button">Clear</button>
       </div>
 
-      <h3>Filters</h3>
-
-      <div class="filters-row">
-        <label class="filter">
-          <span class="filter-label">Category</span>
-          <select id="filter-category">
-            <option value="">All Categories</option>
-          </select>
-        </label>
-
-        <label class="filter">
-          <span class="filter-label">Level</span>
-          <select id="filter-level">
-            <option value="">All Levels</option>
-          </select>
-        </label>
-      </div>
-
-      <div class="options-row">
-        <label class="opt">
+      <div class="row">
+        <label>
           <input id="show-source" type="checkbox" />
           Show source file
         </label>
-
-        <label class="opt">
+        <label>
           <input id="show-empty-query" type="checkbox" />
-          Allow empty query (shows everything)
+          Allow empty query (show all)
         </label>
       </div>
 
-      <div id="status" class="status muted"></div>
+      <div id="status" class="status"></div>
+      <div id="hint" class="hint"></div>
 
+      <div id="filebox" class="filebox">
+        <div class="hint">
+          Fetch is blocked in many browsers when you open HTML as a local file. Use this fallback:
+          select the CSVs from <code>certamengame/data/</code>.
+        </div>
+        <div class="row" style="margin-top: 10px;">
+          <input id="csvfiles" type="file" accept=".csv" multiple />
+          <button id="load-files" type="button">Load Selected CSVs</button>
+        </div>
+        <div class="hint">
+          Tip: pick novice.csv, intermediate.csv, advanced.csv. Filenames are used to guess the level.
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
       <div id="results" class="results"></div>
     </section>
   </main>
 
-  <footer class="bottombar">
-    <a href="index.html" class="linklike">Back</a>
-  </footer>
-
-  <script src="script.js?v=17"></script>
+  <script src="search.js"></script>
 </body>
 </html>

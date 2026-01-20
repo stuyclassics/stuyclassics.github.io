@@ -1,7 +1,3 @@
-// Certamen Search (static, no server)
-// Loads CSVs from ../certamengame/... and searches QUESTION + ANSWER case-insensitively.
-// Adds filters: Category + Level.
-
 const el = (id) => document.getElementById(id);
 
 const STATE = {
@@ -21,37 +17,41 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   });
 
-  // Re-run search when filters change (if those elements exist)
-  if (el("filter-category")) el("filter-category").addEventListener("change", runSearchFromUI);
-  if (el("filter-level")) el("filter-level").addEventListener("change", runSearchFromUI);
+  el("load-files").addEventListener("click", loadFromFilePicker);
 
   setStatus("Loading CSVs...");
-  await loadAllCSVs();
+  setHint("Trying to fetch CSVs from ../certamengame/data/ ...");
 
-  // Populate filter dropdowns after load (if present)
-  populateFilters();
+  const ok = await loadAllCSVsByFetch();
 
-  setStatus(`Loaded ${STATE.items.length} questions.`);
+  if (ok) {
+    STATE.loaded = true;
+    setStatus(`Loaded ${STATE.items.length} questions.`);
+    setHint("Ready.");
+    return;
+  }
+
+  // Fetch failed: show file picker fallback
+  STATE.loaded = false;
+  setStatus("Could not fetch CSVs. Use the file picker below.");
+  setHint('If you opened this with file://, fetch is blocked. Either run a local server OR use the fallback.');
+  el("filebox").classList.add("visible");
 });
 
 function clearUI() {
   el("query").value = "";
   el("results").innerHTML = "";
-
-  if (el("filter-category")) el("filter-category").value = "";
-  if (el("filter-level")) el("filter-level").value = "";
-
-  setStatus(STATE.loaded ? `Loaded ${STATE.items.length} questions.` : "");
+  if (STATE.loaded) setStatus(`Loaded ${STATE.items.length} questions.`);
 }
 
 function runSearchFromUI() {
   if (!STATE.loaded) {
-    setStatus("Still loading CSVs...");
+    setStatus("Not loaded yet. Use the file picker to load CSVs.");
     return;
   }
 
   const q = el("query").value.trim();
-  const allowEmpty = el("show-empty-query") ? el("show-empty-query").checked : true;
+  const allowEmpty = el("show-empty-query").checked;
 
   if (!q && !allowEmpty) {
     setStatus("Type a keyword (or enable: Allow empty query).");
@@ -59,81 +59,61 @@ function runSearchFromUI() {
     return;
   }
 
-  const filters = getFiltersFromUI();
-  const results = searchItems(q, filters);
-  renderResults(results, q, filters);
-}
-
-function getFiltersFromUI() {
-  const category = (el("filter-category") ? el("filter-category").value : "").trim().toLowerCase();
-  const level = (el("filter-level") ? el("filter-level").value : "").trim().toLowerCase();
-  return { category, level };
+  const results = searchItems(q);
+  renderResults(results, q);
 }
 
 function setStatus(msg) {
   el("status").textContent = msg;
 }
 
-function searchItems(keyword, filters) {
+function setHint(msg) {
+  el("hint").textContent = msg;
+}
+
+function searchItems(keyword) {
   const key = String(keyword || "").toLowerCase();
-  const wantCat = String(filters.category || "").toLowerCase();
-  const wantLvl = String(filters.level || "").toLowerCase();
+  if (!key) return STATE.items.slice();
 
   return STATE.items.filter((it) => {
-    // category filter
-    if (wantCat && String(it.category || "").toLowerCase() !== wantCat) return false;
-
-    // level filter
-    if (wantLvl && String(it.level || "").toLowerCase() !== wantLvl) return false;
-
-    // keyword search (question + answer)
-    if (!key) return true;
-
     const q = (it.question || "").toLowerCase();
     const a = (it.answer || "").toLowerCase();
     return q.includes(key) || a.includes(key);
   });
 }
 
-function renderResults(results, keyword, filters) {
-  const showSource = el("show-source") ? el("show-source").checked : false;
+function renderResults(results, keyword) {
+  const showSource = el("show-source").checked;
   const container = el("results");
-
-  const keyShown = keyword || "";
-  const parts = [];
-
-  if (filters.category) parts.push(`category=${filters.category}`);
-  if (filters.level) parts.push(`level=${filters.level}`);
-
-  const filterText = parts.length ? ` (${parts.join(", ")})` : "";
 
   if (!results.length) {
     container.innerHTML = `<div class="muted">No matches.</div>`;
-    setStatus(`0 matches for "${keyShown}"${filterText}.`);
+    setStatus(keyword ? `0 matches for "${keyword}".` : "0 results.");
     return;
   }
 
-  const MAX = 300;
+  const MAX = 400;
   const trimmed = results.slice(0, MAX);
 
   setStatus(
-    results.length === trimmed.length
-      ? `${results.length} match(es) for "${keyShown}"${filterText}.`
-      : `${results.length} match(es) for "${keyShown}"${filterText}. Showing first ${MAX}.`
+    keyword
+      ? (results.length === trimmed.length
+          ? `${results.length} match(es) for "${keyword}".`
+          : `${results.length} match(es) for "${keyword}". Showing first ${MAX}.`)
+      : (results.length === trimmed.length
+          ? `${results.length} result(s).`
+          : `${results.length} result(s). Showing first ${MAX}.`)
   );
 
-  container.innerHTML = trimmed
-    .map((it) => {
-      const metaBits = [
-        `<span class="pill">${escapeHTML(String(it.category || "").toLowerCase())}</span>`,
-        `<span class="pill">${escapeHTML(String(it.level || ""))}</span>`
-      ];
+  container.innerHTML = trimmed.map((it) => {
+    const metaBits = [
+      `<span class="pill">${escapeHTML(String(it.category || ""))}</span>`,
+      `<span class="pill">${escapeHTML(String(it.level || ""))}</span>`
+    ];
 
-      if (showSource) {
-        metaBits.push(`<span class="pill">${escapeHTML(String(it.source || ""))}</span>`);
-      }
+    if (showSource) metaBits.push(`<span class="pill">${escapeHTML(String(it.source || ""))}</span>`);
 
-      return `
+    return `
       <div class="result">
         <div class="meta">${metaBits.join("")}</div>
         <div class="qa">
@@ -142,8 +122,7 @@ function renderResults(results, keyword, filters) {
         </div>
       </div>
     `;
-    })
-    .join("");
+  }).join("");
 }
 
 function escapeHTML(s) {
@@ -155,11 +134,12 @@ function escapeHTML(s) {
     .replaceAll("'", "&#39;");
 }
 
-/* ---------------- CSV Loading ---------------- */
+/* ---------------- Fetch loading ---------------- */
 
-async function loadAllCSVs() {
-  if (STATE.loading) return;
+async function loadAllCSVsByFetch() {
+  if (STATE.loading) return false;
   STATE.loading = true;
+  STATE.items = [];
 
   const files = [
     { level: "novice", names: ["novice.csv", "Novice.csv"] },
@@ -169,62 +149,116 @@ async function loadAllCSVs() {
 
   const baseCandidates = [
     "../certamengame/data/",
-    "../certamengame/",
-    "../certamengame/csv/",
-    "../certamengame/questions/",
-    "../certamengame/data/csv/"
+    "../certamengame/"
   ];
 
-  for (const f of files) {
-    const { text, usedPath } = await fetchFirstAvailableCSV(baseCandidates, f.names);
-    if (!text) continue;
+  let loadedCount = 0;
 
-    const rows = parseCSV(text);
+  for (const f of files) {
+    const found = await fetchFirstAvailableCSV(baseCandidates, f.names);
+    if (!found.text) continue;
+
+    const rows = parseCSV(found.text);
     const normalized = normalizeRows(rows);
 
     for (const r of normalized) {
       STATE.items.push({
-        level: f.level, // novice/intermediate/advanced
-        category: r.category, // history/mythology/culture/language/literature (forced lowercase)
+        level: f.level,
+        category: r.category,
         question: r.question,
         answer: r.answer,
-        source: usedPath
+        source: found.usedPath
       });
     }
+
+    loadedCount++;
   }
 
-  STATE.loaded = true;
   STATE.loading = false;
 
-  if (STATE.items.length === 0) {
-    setStatus("Could not load any CSVs. Check paths: ../certamengame/data/novice.csv etc.");
-  }
+  // If nothing loaded, treat as failure
+  return loadedCount > 0;
 }
 
 async function fetchFirstAvailableCSV(baseDirs, filenames) {
-  let lastErr = null;
-
   for (const base of baseDirs) {
     for (const name of filenames) {
       const path = `${base}${name}`;
       try {
         const res = await fetch(`${path}?v=${Date.now()}`, { cache: "no-store" });
         if (res.ok) {
-          const text = await res.text();
-          return { text, usedPath: path };
+          return { text: await res.text(), usedPath: path };
         }
-        lastErr = new Error(`HTTP ${res.status} for ${path}`);
-      } catch (e) {
-        lastErr = e;
+      } catch {
+        // ignore and keep trying
       }
     }
   }
-
-  console.warn("CSV not found. Last error:", lastErr);
   return { text: "", usedPath: "" };
 }
 
-/* ---------------- Robust CSV Parser ---------------- */
+/* ---------------- File picker fallback ---------------- */
+
+async function loadFromFilePicker() {
+  const input = el("csvfiles");
+  if (!input.files || input.files.length === 0) {
+    setStatus("Pick one or more CSV files first.");
+    return;
+  }
+
+  STATE.items = [];
+
+  const files = Array.from(input.files);
+  let totalRows = 0;
+
+  for (const file of files) {
+    const text = await readFileAsText(file);
+    const rows = parseCSV(text);
+    const normalized = normalizeRows(rows);
+
+    const level = guessLevelFromFilename(file.name);
+    for (const r of normalized) {
+      STATE.items.push({
+        level,
+        category: r.category,
+        question: r.question,
+        answer: r.answer,
+        source: file.name
+      });
+      totalRows++;
+    }
+  }
+
+  STATE.loaded = true;
+  setStatus(`Loaded ${STATE.items.length} questions from selected files.`);
+  setHint("Ready.");
+  el("results").innerHTML = "";
+}
+
+function guessLevelFromFilename(name) {
+  const n = String(name || "").toLowerCase();
+  if (n.includes("novice")) return "novice";
+  if (n.includes("intermediate")) return "intermediate";
+  if (n.includes("advanced")) return "advanced";
+  return "unknown";
+}
+
+function readFileAsText(file) {
+  return new Promise((resolve, reject) => {
+    const fr = new FileReader();
+    fr.onload = () => resolve(String(fr.result || ""));
+    fr.onerror = () => reject(fr.error);
+    fr.readAsText(file);
+  });
+}
+
+/* ---------------- Robust CSV parser ----------------
+   Handles:
+   - commas inside quotes
+   - doubled quotes "" inside quoted fields
+   Assumes:
+   - no internal newlines in fields (your cleaned constraint)
+----------------------------------------------------- */
 
 function parseCSV(text) {
   const lines = String(text).replace(/\r/g, "").split("\n").filter((l) => l.length > 0);
@@ -246,10 +280,10 @@ function parseCSV(text) {
 }
 
 function looksLikeHeader(cells) {
-  const joined = cells.map((c) => String(c || "").toLowerCase().trim());
-  const hasCategory = joined.some((x) => x === "category");
-  const hasQuestion = joined.some((x) => x === "question");
-  const hasAnswer = joined.some((x) => x === "answer");
+  const joined = cells.map(c => String(c || "").toLowerCase().trim());
+  const hasCategory = joined.some(x => x === "category");
+  const hasQuestion = joined.some(x => x === "question");
+  const hasAnswer = joined.some(x => x === "answer");
   return hasCategory && hasQuestion && hasAnswer;
 }
 
@@ -285,45 +319,10 @@ function parseCSVLine(line) {
 }
 
 function normalizeRows(rows) {
-  // Expected columns: category, question, answer
-  // Force category to lowercase so filters are consistent.
-  return rows
-    .map((cells) => {
-      const category = (cells[0] || "").trim().toLowerCase();
-      const question = (cells[1] || "").trim();
-      const answer = (cells[2] || "").trim();
-      return { category, question, answer };
-    })
-    .filter((r) => r.category || r.question || r.answer);
-}
-
-/* ---------------- Filter dropdowns ---------------- */
-
-function populateFilters() {
-  // Only run if the dropdowns exist in your HTML
-  const catSel = el("filter-category");
-  const lvlSel = el("filter-level");
-  if (!catSel && !lvlSel) return;
-
-  // Categories: fixed set you want
-  const fixedCats = ["history", "mythology", "culture", "language", "literature"];
-
-  if (catSel) {
-    catSel.innerHTML =
-      `<option value="">All Categories</option>` +
-      fixedCats.map((c) => `<option value="${escapeHTML(c)}">${escapeHTML(capitalize(c))}</option>`).join("");
-  }
-
-  if (lvlSel) {
-    lvlSel.innerHTML =
-      `<option value="">All Levels</option>` +
-      ["novice", "intermediate", "advanced"]
-        .map((l) => `<option value="${escapeHTML(l)}">${escapeHTML(capitalize(l))}</option>`)
-        .join("");
-  }
-}
-
-function capitalize(s) {
-  s = String(s || "");
-  return s ? s[0].toUpperCase() + s.slice(1) : s;
+  return rows.map((cells) => {
+    const category = (cells[0] || "").trim();
+    const question = (cells[1] || "").trim();
+    const answer = (cells[2] || "").trim();
+    return { category, question, answer };
+  }).filter(r => r.category || r.question || r.answer);
 }
