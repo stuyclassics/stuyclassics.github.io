@@ -17,7 +17,7 @@
       padding: 16px 0;
       text-align: center;
       border-bottom: 3px solid goldenrod;
-      background: #fff;
+      background: #ffffff;
     }
 
     h1 {
@@ -31,6 +31,7 @@
       display: grid;
       gap: 12px;
       justify-items: center;
+      align-content: start;
     }
 
     .card {
@@ -43,7 +44,7 @@
 
     .controls {
       display: grid;
-      gap: 12px;
+      gap: 10px;
     }
 
     .row {
@@ -53,13 +54,13 @@
       align-items: center;
     }
 
-    input[type="text"],
-    select {
-      padding: 10px;
+    input[type="text"], select {
+      padding: 10px 12px;
       font-size: 16px;
       border-radius: 8px;
       border: 2px solid #4b0082;
       background: #fff;
+      color: #2f1a47;
     }
 
     input[type="text"] {
@@ -83,10 +84,24 @@
       color: #2f1a47;
     }
 
+    label {
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+      font-size: 16px;
+    }
+
     .status {
       font-weight: bold;
       color: #4b0082;
       min-height: 22px;
+      word-break: break-word;
+    }
+
+    .hint {
+      color: rgba(47,26,71,0.8);
+      font-size: 14px;
+      line-height: 1.4;
     }
 
     .results {
@@ -122,6 +137,23 @@
       display: grid;
       gap: 6px;
     }
+
+    .filebox {
+      display: none;
+      margin-top: 6px;
+      padding: 12px;
+      background: rgba(255,255,255,0.7);
+      border: 1px solid rgba(75,0,130,0.25);
+      border-radius: 10px;
+    }
+
+    .filebox.visible {
+      display: block;
+    }
+
+    input[type="file"] {
+      width: 100%;
+    }
   </style>
 </head>
 <body>
@@ -132,9 +164,8 @@
   <main>
     <section class="card controls">
       <div class="row">
-        <input id="query" type="text" placeholder="Keyword (question or answer)" />
-        <button id="search" type="button">Search</button>
-        <button id="clear" type="button">Clear</button>
+        <input id="query" type="text" placeholder="Keyword (question or answer)" autocomplete="off" />
+        <button id="clear" type="button">Clear Filters</button>
       </div>
 
       <div class="row">
@@ -143,14 +174,32 @@
           <option value="novice">Novice</option>
           <option value="intermediate">Intermediate</option>
           <option value="advanced">Advanced</option>
+          <option value="unknown">Unknown</option>
         </select>
 
         <select id="category-filter">
           <option value="">All Categories</option>
         </select>
+
+        <label>
+          <input id="show-source" type="checkbox" />
+          Show source file
+        </label>
       </div>
 
       <div id="status" class="status"></div>
+      <div id="hint" class="hint"></div>
+
+      <div id="filebox" class="filebox">
+        <div class="hint">
+          If this page is opened with <code>file://</code>, browsers often block <code>fetch</code>.
+          Use this fallback: select the CSVs from <code>certamengame/data/</code>.
+        </div>
+        <div class="row" style="margin-top: 10px;">
+          <input id="csvfiles" type="file" accept=".csv" multiple />
+          <button id="load-files" type="button">Load Selected CSVs</button>
+        </div>
+      </div>
     </section>
 
     <section class="card">
