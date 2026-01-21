@@ -6,10 +6,8 @@
   <title>Certamen Search</title>
   <style>
     * { box-sizing: border-box; }
-    html, body { height: 100%; }
     body {
       margin: 0;
-      padding: 0;
       font-family: "Garamond", "Times New Roman", serif;
       background: #fdfcf9;
       color: #2f1a47;
@@ -19,7 +17,7 @@
       padding: 16px 0;
       text-align: center;
       border-bottom: 3px solid goldenrod;
-      background: #ffffff;
+      background: #fff;
     }
 
     h1 {
@@ -33,7 +31,6 @@
       display: grid;
       gap: 12px;
       justify-items: center;
-      align-content: start;
     }
 
     .card {
@@ -46,25 +43,28 @@
 
     .controls {
       display: grid;
-      gap: 10px;
+      gap: 12px;
     }
 
     .row {
       display: flex;
       gap: 10px;
-      align-items: center;
       flex-wrap: wrap;
+      align-items: center;
+    }
+
+    input[type="text"],
+    select {
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: 2px solid #4b0082;
+      background: #fff;
     }
 
     input[type="text"] {
       flex: 1;
-      min-width: 260px;
-      padding: 10px 12px;
-      border: 2px solid #4b0082;
-      border-radius: 8px;
-      font-size: 16px;
-      background: #fff;
-      color: #2f1a47;
+      min-width: 240px;
     }
 
     button {
@@ -83,24 +83,10 @@
       color: #2f1a47;
     }
 
-    label {
-      display: inline-flex;
-      gap: 8px;
-      align-items: center;
-      font-size: 16px;
-    }
-
     .status {
       font-weight: bold;
       color: #4b0082;
       min-height: 22px;
-      word-break: break-word;
-    }
-
-    .hint {
-      color: rgba(47,26,71,0.8);
-      font-size: 14px;
-      line-height: 1.4;
     }
 
     .results {
@@ -119,58 +105,22 @@
       display: flex;
       gap: 10px;
       flex-wrap: wrap;
-      align-items: baseline;
       margin-bottom: 6px;
-      color: #4b0082;
       font-weight: bold;
+      color: #4b0082;
     }
 
     .pill {
-      display: inline-block;
       padding: 2px 8px;
       border-radius: 999px;
-      background: rgba(75,0,130,0.10);
+      background: rgba(75,0,130,0.1);
       border: 1px solid rgba(75,0,130,0.25);
       font-size: 14px;
-      font-weight: bold;
-      color: #4b0082;
     }
 
     .qa {
       display: grid;
       gap: 6px;
-    }
-
-    .q strong,
-    .a strong {
-      color: #4b0082;
-    }
-
-    .muted {
-      color: rgba(47,26,71,0.75);
-      font-size: 14px;
-    }
-
-    .danger {
-      color: #b22222;
-      font-weight: bold;
-    }
-
-    .filebox {
-      display: none;
-      margin-top: 6px;
-      padding: 12px;
-      background: rgba(255,255,255,0.7);
-      border: 1px solid rgba(75,0,130,0.25);
-      border-radius: 10px;
-    }
-
-    .filebox.visible {
-      display: block;
-    }
-
-    input[type="file"] {
-      width: 100%;
     }
   </style>
 </head>
@@ -182,38 +132,25 @@
   <main>
     <section class="card controls">
       <div class="row">
-        <input id="query" type="text" placeholder="Type a keyword (searches question + answer)..." autocomplete="off" />
+        <input id="query" type="text" placeholder="Keyword (question or answer)" />
         <button id="search" type="button">Search</button>
         <button id="clear" type="button">Clear</button>
       </div>
 
       <div class="row">
-        <label>
-          <input id="show-source" type="checkbox" />
-          Show source file
-        </label>
-        <label>
-          <input id="show-empty-query" type="checkbox" />
-          Allow empty query (show all)
-        </label>
+        <select id="level-filter">
+          <option value="">All Levels</option>
+          <option value="novice">Novice</option>
+          <option value="intermediate">Intermediate</option>
+          <option value="advanced">Advanced</option>
+        </select>
+
+        <select id="category-filter">
+          <option value="">All Categories</option>
+        </select>
       </div>
 
       <div id="status" class="status"></div>
-      <div id="hint" class="hint"></div>
-
-      <div id="filebox" class="filebox">
-        <div class="hint">
-          Fetch is blocked in many browsers when you open HTML as a local file. Use this fallback:
-          select the CSVs from <code>certamengame/data/</code>.
-        </div>
-        <div class="row" style="margin-top: 10px;">
-          <input id="csvfiles" type="file" accept=".csv" multiple />
-          <button id="load-files" type="button">Load Selected CSVs</button>
-        </div>
-        <div class="hint">
-          Tip: pick novice.csv, intermediate.csv, advanced.csv. Filenames are used to guess the level.
-        </div>
-      </div>
     </section>
 
     <section class="card">
