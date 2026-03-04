@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Certamen Practice – Controller</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      font-family: "Garamond", "Times New Roman", serif;
+      background: #fdfcf9;
+      margin: 0;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+    }
+    .topbar {
+      border-bottom: 3px solid goldenrod;
+      padding: 16px 0;
+      text-align: center;
+      position: relative;
+    }
+    h1 { color: #4b0082; font-size: 2.6em; margin: 0; }
+    #controller-status {
+      position: absolute;
+      right: 20px;
+      top: 50%;
+      transform: translateY(-50%);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.85rem;
+      color: #666;
+      font-family: sans-serif;
+    }
+    #controller-dot {
+      width: 11px; height: 11px;
+      border-radius: 50%;
+      background: #ccc;
+      transition: background 0.3s;
+      flex-shrink: 0;
+    }
+    #controller-dot.connected { background: #4caf50; box-shadow: 0 0 6px #4caf50; }
+    #controller-dot.disconnected { background: #e74c3c; }
+    main { display: grid; gap: 16px; padding: 16px; }
+    .card {
+      background: #f7f3ff;
+      border: 2px solid #4b0082;
+      border-radius: 12px;
+      padding: 24px;
+      width: min(900px, 92vw);
+      margin: 0 auto;
+      text-align: center;
+    }
+    .top-actions { display: flex; justify-content: flex-end; margin-bottom: 10px; }
+    .question {
+      font-size: 24px;
+      line-height: 1.5;
+      height: 120px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      color: #2f1a47;
+      margin-bottom: 8px;
+      word-break: break-word;
+      display: block;
+      text-align: left;
+      padding: 6px 8px;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.55);
+    }
+    #question-text { display: block; width: 100%; }
+    /* Controller hint bar */
+    #controller-hint {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      background: #f0fff0;
+      border: 1px solid #4caf50;
+      border-radius: 8px;
+      padding: 8px 14px;
+      margin-bottom: 10px;
+      font-family: sans-serif;
+      font-size: 0.82rem;
+      color: #2e7d32;
+    }
+    #controller-hint.show { display: flex; }
+    .kbd {
+      display: inline-block;
+      background: #e8f5e9;
+      border: 1px solid #4caf50;
+      border-radius: 4px;
+      padding: 1px 7px;
+      font-family: monospace;
+      font-weight: bold;
+      font-size: 0.9em;
+    }
+    .message {
+      font-size: 18px;
+      font-weight: bold;
+      color: #4b0082;
+      min-height: 24px;
+      margin: 8px 0 4px 0;
+    }
+    .actions { display: flex; justify-content: center; gap: 20px; margin: 18px 0; }
+    .answer-card { margin-top: 16px; display: flex; justify-content: center; gap: 10px; }
+    #answer-box input {
+      padding: 10px; font-size: 16px;
+      border: 2px solid #4b0082; border-radius: 6px;
+      flex: 1; min-width: 260px;
+    }
+    .post-reveal { margin-top: 14px; display: flex; justify-content: center; }
+    button {
+      margin: 5px; padding: 10px 18px; font-size: 16px;
+      border-radius: 10px; cursor: pointer; border: none;
+      background: #4b0082; color: white;
+      transition: 0.25s ease;
+      box-shadow: 0 3px 0 rgba(75,0,130,0.35);
+    }
+    button:hover { background: goldenrod; color: #2f1a47; }
+    button:disabled { opacity: 0.4; cursor: default; }
+    button:disabled:hover { background: #4b0082; color: white; }
+    #speed { width: min(520px, 80%); margin-top: 8px; }
+    #speed-label { margin-top: 6px; font-weight: bold; color: #4b0082; }
+    .timer-card { display: none; }
+    #timer-text { font-size: 20px; font-weight: bold; color: #b22222; }
+    .bottombar {
+      text-align: center; padding: 18px 0;
+      background: #f7f3ff; border-top: 2px solid #4b0082;
+    }
+    .bottombar button { font-size: 18px; padding: 12px 22px; }
+    .review-actions { display: flex; justify-content: center; gap: 14px; margin: 12px 0 18px 0; }
+    .review-list { text-align: left; display: grid; gap: 14px; }
+    .review-item {
+      background: #ffffff; border: 1px solid rgba(75,0,130,0.35);
+      border-radius: 10px; padding: 14px;
+    }
+    .review-meta { font-weight: bold; color: #4b0082; margin-bottom: 6px; }
+    .review-q { color: #2f1a47; margin-bottom: 8px; }
+    .review-r { color: #555; margin-bottom: 4px; font-size: 0.95em; }
+    .review-a { color: #2e7d32; font-size: 0.95em; }
+    .review-a-label { font-weight: bold; color: #4b0082; }
+    .review-empty { text-align: center; font-weight: bold; color: #4b0082; }
+    @media (max-width: 560px) {
+      .question { font-size: 20px; height: 140px; }
+      #timer-text { font-size: 18px; }
+      h1 { font-size: 1.8em; }
+      #controller-status { font-size: 0.72rem; right: 8px; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="topbar">
+  <h1>Certamen Practice</h1>
+  <div id="controller-status">
+    <div id="controller-dot"></div>
+    <span id="controller-label">No controller</span>
+  </div>
+</header>
+
+<main>
+  <!-- SETUP -->
+  <section id="setup" class="card">
+    <h3>Select Level</h3>
+    <label><input type="radio" name="level" value="novice" checked> Novice</label>
+    <label><input type="radio" name="level" value="intermediate"> Intermediate</label>
+    <label><input type="radio" name="level" value="advanced"> Advanced</label>
+    <h3>Select Categories</h3>
+    <label><input type="checkbox" value="literature"> Literature</label>
+    <label><input type="checkbox" value="language"> Language</label>
+    <label><input type="checkbox" value="history"> History</label>
+    <label><input type="checkbox" value="culture"> Culture</label>
+    <label><input type="checkbox" value="mythology"> Mythology</label>
+    <h3>Read Speed</h3>
+    <input type="range" id="speed" min="0.8" max="6.0" step="0.1" value="1.4" />
+    <div id="speed-label">1.4 words/sec</div>
+    <div class="actions">
+      <button id="start" type="button">Start Game</button>
+    </div>
+  </section>
+
+  <!-- GAME -->
+  <section id="game" class="card" style="display:none;">
+    <div class="top-actions">
+      <button id="review-log" type="button">Review Log</button>
+    </div>
+    <div id="controller-hint">
+      🎮
+      <span><span class="kbd">Any face button</span> = Buzz</span>
+      &nbsp;|&nbsp;
+      <span><span class="kbd">Menu ☰</span> / <span class="kbd">View ⧉</span> = Next / Skip</span>
+    </div>
+    <div id="question-box" class="question">
+      <span id="question-text"></span>
+    </div>
+    <div id="message" class="message"></div>
+    <div class="actions">
+      <button id="buzz" type="button">Buzz</button>
+      <button id="skip" type="button">Skip</button>
+    </div>
+    <div id="answer-box" class="answer-card" style="display:none;">
+      <input type="text" id="answer" placeholder="Type your answer..." autocomplete="off" />
+      <button id="submit-answer" type="button">Submit</button>
+    </div>
+    <div id="post-reveal" class="post-reveal" style="display:none;">
+      <button id="mark-review" type="button">Mark for Review</button>
+    </div>
+  </section>
+
+  <!-- TIMER -->
+  <section id="timer-card" class="card timer-card" style="display:none;">
+    <div id="timer-text">Time Left: <span id="timer">10</span>s</div>
+  </section>
+
+  <!-- REVIEW -->
+  <section id="review" class="card" style="display:none;">
+    <h3>Review Log</h3>
+    <div class="review-actions">
+      <button id="clear-review" type="button">Clear Log</button>
+      <button id="close-review" type="button">Back to Game</button>
+    </div>
+    <div id="review-list" class="review-list"></div>
+  </section>
+</main>
+
+<footer class="bottombar">
+  <button id="back" type="button">Return to Setup</button>
+</footer>
+
+<script>
+// ─── STATE ────────────────────────────────────────────────────────────────────
+let questionPool = [];
+let currentQuestion = null;
+let words = [];
+let wordIndex = 0;
+let timer = 10;
+let timerInterval = null;
+let readingTimeout = null;
+let readingDone = false;
+let wordsPerSecond = 1.4;
+let lastUserResponse = "";
+// Tracks whether we're in the "post-reveal" state (answer shown, waiting for next)
+let postReveal = false;
+
+const REVIEW_KEY = "certamen_review_log_v3";
+const el = id => document.getElementById(id);
+const qBox = () => el("question-box");
+const qText = () => el("question-text");
+
+// ─── CONTROLLER ───────────────────────────────────────────────────────────────
+// Xbox layout (standard mapping):
+//   0=A  1=B  2=X  3=Y  4=LB  5=RB  6=LT  7=RT
+//   8=View(Back)  9=Menu(Start)  10=LS  11=RS
+//   12=Up  13=Down  14=Left  15=Right  16=Xbox(Guide)
+//
+// ANY button except Menu(9) and View(8) → BUZZ (or confirm/next when in post-reveal)
+// Menu(9) OR View(8) → NEXT / SKIP
+
+const NEXT_BTNS = new Set([8, 9]);   // View + Menu = next/skip
+let prevBtns = [];
+let gpLoop = null;
+
+function startGpLoop() {
+  if (gpLoop) return;
+  gpLoop = setInterval(pollGamepad, 50);
+}
+function stopGpLoop() {
+  clearInterval(gpLoop);
+  gpLoop = null;
+}
+
+function pollGamepad() {
+  const gpads = navigator.getGamepads ? navigator.getGamepads() : [];
+  let gp = null;
+  for (let i = 0; i < gpads.length; i++) if (gpads[i]) { gp = gpads[i]; break; }
+  if (!gp) return;
+
+  const cur = Array.from(gp.buttons).map(b => b.pressed);
+
+  for (let i = 0; i < cur.length; i++) {
+    if (!cur[i] || prevBtns[i]) continue;   // only on fresh press
+
+    if (el("game").style.display === "none") continue;  // only active in game
+
+    if (NEXT_BTNS.has(i)) {
+      // Menu / View → next or skip
+      controllerNext();
+    } else {
+      // Any face/shoulder/trigger button → buzz
+      controllerBuzz();
+    }
+  }
+
+  prevBtns = cur;
+}
+
+function controllerBuzz() {
+  if (postReveal) {
+    // already revealed – treat as "next"
+    controllerNext();
+    return;
+  }
+  // Only buzz if not already buzzed
+  const answerVisible = el("answer-box").style.display !== "none";
+  if (!answerVisible) {
+    el("buzz").click();
+  }
+}
+
+function controllerNext() {
+  if (postReveal) {
+    nextQuestion();
+    return;
+  }
+  // Not yet revealed: act like Skip
+  el("skip").click();
+}
+
+window.addEventListener("gamepadconnected", e => {
+  prevBtns = Array(e.gamepad.buttons.length).fill(false);
+  updateControllerUI(true);
+  startGpLoop();
+});
+
+window.addEventListener("gamepaddisconnected", () => {
+  prevBtns = [];
+  updateControllerUI(false);
+});
+
+function updateControllerUI(connected) {
+  const dot = el("controller-dot");
+  const lbl = el("controller-label");
+  const hint = el("controller-hint");
+  if (connected) {
+    dot.className = "connected";
+    lbl.textContent = "Controller connected";
+    hint.classList.add("show");
+  } else {
+    dot.className = "disconnected";
+    lbl.textContent = "Controller disconnected";
+    hint.classList.remove("show");
+  }
+}
+
+// Check for already-connected controller on page load
+window.addEventListener("load", () => {
+  const gpads = navigator.getGamepads ? navigator.getGamepads() : [];
+  for (const gp of gpads) {
+    if (gp) {
+      prevBtns = Array(gp.buttons.length).fill(false);
+      updateControllerUI(true);
+      startGpLoop();
+      break;
+    }
+  }
+});
+
+// ─── REVIEW LOG ───────────────────────────────────────────────────────────────
+function loadReviewLog() {
+  try {
+    const raw = localStorage.getItem(REVIEW_KEY);
+    const arr = raw ? JSON.parse(raw) : [];
+    return Array.isArray(arr) ? arr : [];
+  } catch { return []; }
+}
+
+function saveReviewLog(arr) {
+  localStorage.setItem(REVIEW_KEY, JSON.stringify(arr));
+}
+
+function prettyCategory(cat) {
+  const c = String(cat || "").trim();
+  if (!c) return "";
+  return c.toLowerCase().split(/\s+/).map(w => w ? w[0].toUpperCase() + w.slice(1) : "").join(" ");
+}
+
+function makeReviewId(q) {
+  const s = `${q.category}||${q.question}||${q.answer}`;
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+  return String(h);
+}
+
+function addToReviewLog(q, response) {
+  if (!q) return;
+  const log = loadReviewLog();
+  const id = makeReviewId(q);
+  if (log.some(item => item.id === id)) return;
+  log.unshift({
+    id,
+    category: prettyCategory(q.category),
+    question: String(q.question || "").trim(),
+    answer: String(q.answer || "").trim(),
+    response: (response && response.trim()) ? response.trim() : "(no response)",
+    addedAt: Date.now()
+  });
+  saveReviewLog(log);
+}
+
+function renderReviewLog() {
+  const list = el("review-list");
+  const log = loadReviewLog();
+  if (!log.length) {
+    list.innerHTML = `<div class="review-empty">No saved questions yet.</div>`;
+    return;
+  }
+  list.innerHTML = log.map(item => `
+    <div class="review-item">
+      <div class="review-meta">${escapeHTML(item.category)}</div>
+      <div class="review-q">${escapeHTML(item.question)}</div>
+      <div class="review-r"><span class="review-a-label">Your response:</span> ${escapeHTML(item.response)}</div>
+      <div class="review-a"><span class="review-a-label">Answer:</span> ${escapeHTML(item.answer)}</div>
+    </div>
+  `).join("");
+}
+
+function clearReviewLog() {
+  localStorage.removeItem(REVIEW_KEY);
+  renderReviewLog();
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+document.addEventListener("DOMContentLoaded", () => {
+  el("start").addEventListener("click", startGame);
+  el("buzz").addEventListener("click", onBuzz);
+  el("skip").addEventListener("click", onSkip);
+  el("submit-answer").addEventListener("click", submitAnswer);
+  el("back").addEventListener("click", backToSetup);
+  el("review-log").addEventListener("click", openReview);
+  el("close-review").addEventListener("click", closeReview);
+  el("clear-review").addEventListener("click", clearReviewLog);
+  el("mark-review").addEventListener("click", markCurrentForReview);
+
+  // Keyboard: Enter = buzz or submit
+  document.addEventListener("keydown", e => {
+    if (e.key !== "Enter") return;
+    if (el("game").style.display === "none") return;
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    const answerVisible = el("answer-box").style.display !== "none";
+    if (answerVisible) submitAnswer();
+    else onBuzz();
+  }, true);
+
+  const speed = el("speed");
+  const label = el("speed-label");
+  function syncSpeed() {
+    wordsPerSecond = Number(speed.value) || 1.4;
+    label.textContent = `${wordsPerSecond.toFixed(1)} words/sec`;
+  }
+  syncSpeed();
+  speed.addEventListener("input", syncSpeed);
+});
+
+// ─── NAVIGATION ───────────────────────────────────────────────────────────────
+function backToSetup() {
+  clearAllTimers();
+  el("review").style.display = "none";
+  el("game").style.display = "none";
+  el("setup").style.display = "block";
+  el("timer-card").style.display = "none";
+  clearQuestionText();
+  el("answer").value = "";
+  el("answer-box").style.display = "none";
+  el("post-reveal").style.display = "none";
+  setMessage("");
+  postReveal = false;
+}
+
+function openReview() {
+  el("setup").style.display = "none";
+  el("game").style.display = "none";
+  el("timer-card").style.display = "none";
+  el("review").style.display = "block";
+  renderReviewLog();
+}
+
+function closeReview() {
+  el("review").style.display = "none";
+  if (questionPool.length) {
+    el("game").style.display = "block";
+    el("timer-card").style.display = timerInterval ? "block" : "none";
+  } else {
+    el("setup").style.display = "block";
+  }
+}
+
+// ─── START GAME ───────────────────────────────────────────────────────────────
+async function startGame() {
+  clearAllTimers();
+  const level = document.querySelector('input[name="level"]:checked').value;
+  const categories = Array.from(
+    document.querySelectorAll('#setup input[type="checkbox"]:checked')
+  ).map(cb => cb.value.toLowerCase());
+
+  try {
+    const { text } = await fetchLevelCSV(level);
+    const allQs = parseCSV(text);
+    questionPool = categories.length
+      ? allQs.filter(q => categories.includes(q.category.toLowerCase()))
+      : allQs.slice();
+
+    if (!questionPool.length) {
+      setMessage("No questions found for that selection.");
+      return;
+    }
+
+    el("setup").style.display = "none";
+    el("review").style.display = "none";
+    el("game").style.display = "block";
+    el("timer-card").style.display = "none";
+    nextQuestion();
+  } catch (err) {
+    console.error(err);
+    setMessage("Couldn't load questions. Ensure novice.csv / intermediate.csv / advanced.csv are in the same folder.");
+  }
+}
+
+async function fetchLevelCSV(level) {
+  const cap = level.charAt(0).toUpperCase() + level.slice(1);
+  const candidates = [
+    `./${level}.csv`, `${level}.csv`,
+    `./${cap}.csv`, `${cap}.csv`,
+    `./data/${level}.csv`, `data/${level}.csv`
+  ];
+  let lastErr = null;
+  for (const path of candidates) {
+    try {
+      const res = await fetch(`${path}?v=${Date.now()}`, { cache: "no-store" });
+      if (res.ok) return { text: await res.text(), usedPath: path };
+      lastErr = new Error(`HTTP ${res.status} for ${path}`);
+    } catch (e) { lastErr = e; }
+  }
+  throw lastErr || new Error("CSV not found");
+}
+
+// ─── CSV PARSING ─────────────────────────────────────────────────────────────
+function parseCSV(text) {
+  const lines = text.replace(/\r/g, "").split("\n").filter(Boolean);
+  if (lines.length <= 1) return [];
+  const rows = [];
+  for (let i = 1; i < lines.length; i++) {
+    const cells = [];
+    let cur = "", inQ = false;
+    for (let j = 0; j < lines[i].length; j++) {
+      const ch = lines[i][j];
+      if (ch === '"') {
+        if (inQ && lines[i][j+1] === '"') { cur += '"'; j++; }
+        else inQ = !inQ;
+      } else if (ch === "," && !inQ) { cells.push(cur); cur = ""; }
+      else cur += ch;
+    }
+    cells.push(cur);
+    rows.push({
+      category: (cells[0] || "").trim(),
+      question:  (cells[1] || "").trim(),
+      answer:    (cells[2] || "").trim()
+    });
+  }
+  return rows;
+}
+
+// ─── QUESTION FLOW ────────────────────────────────────────────────────────────
+function nextQuestion() {
+  clearAllTimers();
+  hideTimer();
+  postReveal = false;
+  lastUserResponse = "";
+  currentQuestion = questionPool[Math.floor(Math.random() * questionPool.length)];
+  words = (currentQuestion.question || "").split(" ");
+  wordIndex = 0;
+  readingDone = false;
+  clearQuestionText();
+  el("answer").value = "";
+  el("answer-box").style.display = "none";
+  el("post-reveal").style.display = "none";
+  el("buzz").disabled = false;
+  el("skip").textContent = "Skip";
+  setMessage("");
+  readNextWord();
+}
+
+function readNextWord() {
+  if (wordIndex < words.length) {
+    appendWord(words[wordIndex]);
+    wordIndex++;
+    qBox().scrollTop = qBox().scrollHeight;
+    const delay = Math.max(50, Math.round(1000 / (wordsPerSecond || 1)));
+    readingTimeout = setTimeout(readNextWord, delay);
+  } else {
+    readingDone = true;
+    startTimer(10);
+  }
+}
+
+function appendWord(word) {
+  const span = document.createElement("span");
+  span.textContent = (wordIndex === 0 ? "" : " ") + word;
+  qText().appendChild(span);
+}
+
+function clearQuestionText() {
+  const node = qText();
+  while (node.firstChild) node.removeChild(node.firstChild);
+  qBox().scrollTop = 0;
+}
+
+// ─── BUZZ / ANSWER ───────────────────────────────────────────────────────────
+function onBuzz() {
+  if (postReveal) return;
+  if (readingTimeout) { clearTimeout(readingTimeout); readingTimeout = null; }
+  if (!readingDone) startTimer(10);
+  el("answer-box").style.display = "flex";
+  el("post-reveal").style.display = "none";
+  el("buzz").disabled = true;
+  el("answer").focus();
+}
+
+function onSkip() {
+  if (postReveal) {
+    nextQuestion();
+    return;
+  }
+  clearAllTimers();
+  showAnswer();
+}
+
+function submitAnswer() {
+  lastUserResponse = el("answer").value.trim();
+  clearAllTimers();
+  showAnswer();
+}
+
+function showAnswer() {
+  postReveal = true;
+  const correct = currentQuestion ? currentQuestion.answer : "";
+  setMessage("Answer: " + correct);
+  el("answer-box").style.display = "none";
+  el("post-reveal").style.display = "flex";
+  el("buzz").disabled = true;
+  el("skip").textContent = "Next →";
+  hideTimer();
+}
+
+function markCurrentForReview() {
+  addToReviewLog(currentQuestion, lastUserResponse);
+  setMessage("Saved to Review Log. Answer: " + (currentQuestion ? currentQuestion.answer : ""));
+}
+
+// ─── TIMER ───────────────────────────────────────────────────────────────────
+function startTimer(seconds) {
+  if (timerInterval) return;
+  timer = seconds;
+  showTimer();
+  updateTimerUI();
+  timerInterval = setInterval(() => {
+    timer--;
+    updateTimerUI();
+    if (timer <= 0) { clearAllTimers(); showAnswer(); }
+  }, 1000);
+}
+
+function updateTimerUI() { el("timer").innerText = String(timer); }
+
+function clearAllTimers() {
+  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+  if (readingTimeout) { clearTimeout(readingTimeout); readingTimeout = null; }
+}
+
+function showTimer() { el("timer-card").style.display = "block"; }
+function hideTimer() { el("timer-card").style.display = "none"; }
+
+// ─── UTILS ───────────────────────────────────────────────────────────────────
+function setMessage(msg) { el("message").innerText = msg; }
+
+function escapeHTML(s) {
+  return String(s)
+    .replaceAll("&","&amp;").replaceAll("<","&lt;")
+    .replaceAll(">","&gt;").replaceAll('"',"&quot;")
+    .replaceAll("'","&#39;");
+}
+</script>
+</body>
+</html>
