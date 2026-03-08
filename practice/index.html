@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Certamen Practice Arena</title>
+  <style>
+    /* ── RESET & BASE ─────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body {
+      background: #080808;
+      color: #ddd;
+      font-family: Georgia, 'Times New Roman', serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    button { cursor: pointer; font-family: inherit; border: none; background: none; }
+    button:hover { opacity: 0.78; }
+    input, select { font-family: inherit; }
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-thumb { background: #222; border-radius: 2px; }
+
+    /* ── SCREEN HELPERS ──────────────────────────────────────── */
+    .screen { display: none; }
+    .screen.active { display: flex; }
+
+    /* ── LOADING / ERROR ─────────────────────────────────────── */
+    #screen-load {
+      height: 100vh; align-items: center; justify-content: center;
+      flex-direction: column; gap: 12px;
+    }
+    .load-text {
+      font-family: monospace; font-size: 11px; letter-spacing: 4px; color: #2a2a2a;
+    }
+    .error-text { color: #f87171; font-family: monospace; font-size: 13px; }
+
+    /* ── HOME ────────────────────────────────────────────────── */
+    #screen-home {
+      min-height: 100vh;
+      background: #080808;
+      background-image:
+        radial-gradient(ellipse at 15% 15%, #130f05 0%, transparent 50%),
+        radial-gradient(ellipse at 85% 85%, #050813 0%, transparent 50%);
+      justify-content: center;
+      padding: 40px 0 60px;
+    }
+    .home-inner { width: 100%; max-width: 500px; padding: 0 24px; }
+
+    .title-block { text-align: center; margin-bottom: 44px; }
+    .title-main {
+      font-size: 30px; letter-spacing: 10px; color: #c9a84c;
+      text-shadow: 0 0 50px rgba(201,168,76,0.3);
+    }
+    .title-sub {
+      font-family: monospace; font-size: 9px; letter-spacing: 6px;
+      color: #252525; margin-top: 8px;
+    }
+
+    .filter-block { margin-bottom: 28px; }
+    .filter-label {
+      font-family: monospace; font-size: 9px; letter-spacing: 3px;
+      color: #2e2e2e; margin-bottom: 10px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .filter-label span { color: #1e1e1e; font-weight: 400; }
+    .pill-row { display: flex; flex-wrap: wrap; gap: 8px; }
+
+    .pill {
+      padding: 6px 15px; border-radius: 3px;
+      border: 1px solid #1e1e1e; color: #333;
+      font-family: monospace; font-size: 11px; letter-spacing: 1px;
+      background: transparent; transition: all 0.15s;
+    }
+    .pill.on { background: color-mix(in srgb, var(--c) 12%, transparent); }
+
+    .kw-wrap { position: relative; }
+    .kw-input {
+      width: 100%; background: #0c0c0c; border: 1px solid #1a1a1a;
+      color: #bbb; padding: 10px 38px 10px 14px;
+      border-radius: 4px; font-size: 14px; outline: none;
+      transition: border-color 0.15s;
+    }
+    .kw-input:focus { border-color: #333; }
+    .kw-clear {
+      position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+      color: #333; font-size: 13px; padding: 4px;
+    }
+
+    .speed-row { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; }
+    .mode-toggle { display: flex; }
+    .mode-btn {
+      padding: 5px 13px; border: 1px solid #1e1e1e; color: #333;
+      font-family: monospace; font-size: 11px; transition: all 0.15s;
+    }
+    .mode-btn:first-child { border-radius: 3px 0 0 3px; }
+    .mode-btn:last-child  { border-radius: 0 3px 3px 0; border-left: none; }
+    .mode-btn.on { background: #111830; border-color: #4a5568; color: #818cf8; }
+    .speed-slider { flex: 1; accent-color: #c9a84c; cursor: pointer; }
+    .speed-val { font-family: monospace; font-size: 12px; color: #c9a84c; min-width: 44px; }
+    .speed-desc { font-family: monospace; font-size: 11px; color: #252525; }
+
+    .count-row { text-align: center; margin-bottom: 16px; }
+    .count-n { font-size: 30px; color: #c9a84c; }
+    .count-txt { font-family: monospace; font-size: 12px; color: #333; }
+
+    .start-btn {
+      width: 100%; padding: 15px;
+      background: #c9a84c; color: #080808;
+      border-radius: 4px;
+      font-family: monospace; font-size: 13px; letter-spacing: 3px; font-weight: 700;
+      transition: opacity 0.2s;
+    }
+    .start-btn:disabled { opacity: 0.25; cursor: not-allowed; }
+
+    /* ── GAME ────────────────────────────────────────────────── */
+    #screen-game {
+      min-height: 100vh; flex-direction: column;
+      transition: background 0.5s;
+    }
+
+    .top-bar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 18px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      flex-shrink: 0;
+    }
+    .back-btn {
+      color: #3a3a3a; font-family: monospace; font-size: 12px;
+      letter-spacing: 1px; padding: 4px 0;
+    }
+    .badges { display: flex; gap: 8px; align-items: center; }
+    .badge {
+      padding: 3px 11px; border-radius: 20px; border: 1px solid;
+      font-family: monospace; font-size: 10px; letter-spacing: 2px;
+    }
+    .q-count { font-family: monospace; font-size: 11px; color: #2a2a2a; }
+
+    .prog-track { height: 2px; background: rgba(255,255,255,0.04); flex-shrink: 0; }
+    .prog-fill { height: 100%; transition: width 0.07s linear; }
+
+    .card-area {
+      flex: 1; display: flex; align-items: center; justify-content: center;
+      padding: 28px 20px;
+    }
+    .card {
+      width: 100%; max-width: 640px;
+      background: rgba(0,0,0,0.35);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 10px;
+      padding: 28px 30px 26px;
+    }
+    .phase-label {
+      font-family: monospace; font-size: 9px; letter-spacing: 4px;
+      margin-bottom: 20px; opacity: 0.5;
+    }
+    .q-text {
+      font-size: 21px; line-height: 1.75; color: #ede8e0; min-height: 80px;
+    }
+    .caret {
+      display: inline-block; width: 2px; height: 0.9em;
+      border-right: 2px solid; margin-left: 3px;
+      vertical-align: middle;
+      animation: blink 1s step-end infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+    .ans-box {
+      margin-top: 26px; padding: 16px 20px;
+      border-radius: 6px; border: 1px solid;
+    }
+    .ans-label {
+      font-family: monospace; font-size: 9px; letter-spacing: 4px; margin-bottom: 10px;
+    }
+    .ans-text { font-size: 20px; font-weight: 700; line-height: 1.4; color: #fff; }
+
+    .act-area {
+      padding: 16px 20px 32px;
+      border-top: 1px solid rgba(255,255,255,0.05);
+      background: rgba(0,0,0,0.2);
+      flex-shrink: 0;
+    }
+    .btn-row { display: flex; gap: 10px; }
+    .btn-col { display: flex; flex-direction: column; gap: 10px; }
+    .act-btn {
+      flex: 1; padding: 13px 18px; border-radius: 5px;
+      font-family: monospace; font-size: 12px; letter-spacing: 1px; font-weight: 600;
+      transition: opacity 0.15s;
+    }
+    .act-btn.ghost {
+      background: rgba(255,255,255,0.04); color: #444;
+      flex: 0 0 auto; padding: 13px 22px;
+    }
+    .act-btn.accent { color: #060606; }
+    .act-btn.sub { border: 1px solid; }
+    .act-btn.full { width: 100%; }
+
+    /* ── CATEGORY COLOR VARS ─────────────────────────────────── */
+    .cat-Mythology  { --accent: #c084fc; --bg: #1e1228; --dim: rgba(124,58,237,0.1); }
+    .cat-History    { --accent: #4ade80; --bg: #0f1f12; --dim: rgba(22,163,74,0.1); }
+    .cat-Literature { --accent: #818cf8; --bg: #12122a; --dim: rgba(67,56,202,0.1); }
+    .cat-Language   { --accent: #fb923c; --bg: #1f0f0f; --dim: rgba(234,88,12,0.1); }
+    .cat-PMAQ       { --accent: #38bdf8; --bg: #0d1a28; --dim: rgba(2,132,199,0.1); }
+  </style>
+</head>
+<body>
+
+  <!-- LOADING -->
+  <div id="screen-load" class="screen active">
+    <div class="load-text">LOADING</div>
+  </div>
+
+  <!-- HOME -->
+  <div id="screen-home" class="screen">
+    <div class="home-inner">
+
+      <div class="title-block">
+        <div class="title-main">✦ CERTAMEN ✦</div>
+        <div class="title-sub">PRACTICE ARENA</div>
+      </div>
+
+      <!-- Difficulty -->
+      <div class="filter-block">
+        <div class="filter-label">DIFFICULTY</div>
+        <div class="pill-row" id="level-pills"></div>
+      </div>
+
+      <!-- Category -->
+      <div class="filter-block">
+        <div class="filter-label">CATEGORY</div>
+        <div class="pill-row" id="cat-pills"></div>
+      </div>
+
+      <!-- Keyword -->
+      <div class="filter-block">
+        <div class="filter-label">
+          KEYWORD
+          <span>— searches questions, answers &amp; bonuses</span>
+        </div>
+        <div class="kw-wrap">
+          <input id="kw-input" class="kw-input" type="text"
+            placeholder="e.g. Ovid, gerundive, 44 B.C. …" autocomplete="off" spellcheck="false" />
+          <button id="kw-clear" class="kw-clear" style="display:none">✕</button>
+        </div>
+      </div>
+
+      <!-- Speed -->
+      <div class="filter-block">
+        <div class="filter-label">READING SPEED</div>
+        <div class="speed-row">
+          <div class="mode-toggle">
+            <button class="mode-btn on" data-mode="word">Word</button>
+            <button class="mode-btn" data-mode="char">Char</button>
+          </div>
+          <input id="speed-slider" class="speed-slider" type="range" min="15" max="350" value="80" />
+          <span id="speed-val" class="speed-val">80ms</span>
+        </div>
+        <div id="speed-desc" class="speed-desc">Fast · one word at a time</div>
+      </div>
+
+      <!-- Count + Start -->
+      <div class="count-row">
+        <span id="match-count" class="count-n">0</span>
+        <span id="match-label" class="count-txt"> questions matched</span>
+      </div>
+      <button id="start-btn" class="start-btn" disabled>BEGIN SESSION →</button>
+
+    </div>
+  </div>
+
+  <!-- GAME -->
+  <div id="screen-game" class="screen">
+    <div class="top-bar">
+      <button id="back-btn" class="back-btn">← Back</button>
+      <div class="badges">
+        <span id="badge-cat" class="badge"></span>
+        <span id="badge-level" class="badge" style="border-color:#1e1e1e;color:#333;"></span>
+      </div>
+      <span id="q-count" class="q-count"></span>
+    </div>
+
+    <div class="prog-track">
+      <div id="prog-fill" class="prog-fill" style="width:0%"></div>
+    </div>
+
+    <div class="card-area">
+      <div id="card" class="card">
+        <div id="phase-label" class="phase-label">TOSS-UP</div>
+        <div id="q-text" class="q-text"></div>
+        <div id="ans-box" class="ans-box" style="display:none">
+          <div id="ans-label" class="ans-label">ANSWER</div>
+          <div id="ans-text" class="ans-text"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="act-area">
+      <div id="actions"></div>
+    </div>
+  </div>
+
+  <script>
+  // ── CONFIG ────────────────────────────────────────────────────────────────
+  const LEVELS = ['Novice', 'Intermediate', 'Advanced'];
+  const CATS   = ['Mythology', 'History', 'Literature', 'Language', 'PMAQ'];
+  const CAT_ACCENT = {
+    Mythology:  '#c084fc',
+    History:    '#4ade80',
+    Literature: '#818cf8',
+    Language:   '#fb923c',
+    PMAQ:       '#38bdf8',
+  };
+
+  // ── STATE ─────────────────────────────────────────────────────────────────
+  let allQuestions = [];
+  let sessionQueue = [];
+  let qIdx = 0;
+
+  // Filter state
+  let activeLevels = new Set(LEVELS);
+  let activeCats   = new Set(CATS);
+  let keyword      = '';
+  let speed        = 80;
+  let readMode     = 'word'; // 'word' | 'char'
+
+  // Game state
+  let phase        = 'reading';
+  // phases: reading | paused | answer | b1r | b1p | b1a | b2r | b2p | b2a
+  let revealed     = 0;
+  let bonusRevealed= 0;
+  let ticker       = null;
+
+  // ── SCREEN HELPERS ────────────────────────────────────────────────────────
+  function show(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+  }
+
+  // ── LOAD ──────────────────────────────────────────────────────────────────
+  fetch('questions.json')
+    .then(r => { if (!r.ok) throw new Error('Failed to load questions.json'); return r.json(); })
+    .then(data => {
+      allQuestions = data;
+      buildHome();
+      show('screen-home');
+    })
+    .catch(err => {
+      document.getElementById('screen-load').innerHTML =
+        `<div class="error-text">⚠ ${err.message}</div>`;
+    });
+
+  // ── HOME SETUP ────────────────────────────────────────────────────────────
+  function buildHome() {
+    // Level pills
+    const lp = document.getElementById('level-pills');
+    LEVELS.forEach(l => {
+      const b = document.createElement('button');
+      b.className = 'pill on';
+      b.textContent = l;
+      b.style.setProperty('--c', '#a78bfa');
+      b.style.borderColor = '#a78bfa';
+      b.style.color = '#a78bfa';
+      b.addEventListener('click', () => toggleLevel(l, b));
+      lp.appendChild(b);
+    });
+
+    // Category pills
+    const cp = document.getElementById('cat-pills');
+    CATS.forEach(c => {
+      const b = document.createElement('button');
+      b.className = 'pill on';
+      b.textContent = c;
+      b.style.setProperty('--c', CAT_ACCENT[c]);
+      b.style.borderColor = CAT_ACCENT[c];
+      b.style.color = CAT_ACCENT[c];
+      b.addEventListener('click', () => toggleCat(c, b));
+      cp.appendChild(b);
+    });
+
+    // Keyword
+    const kw = document.getElementById('kw-input');
+    const kc = document.getElementById('kw-clear');
+    kw.addEventListener('input', () => {
+      keyword = kw.value;
+      kc.style.display = keyword ? 'block' : 'none';
+      updateCount();
+    });
+    kc.addEventListener('click', () => {
+      keyword = ''; kw.value = '';
+      kc.style.display = 'none';
+      updateCount();
+    });
+
+    // Speed
+    const slider = document.getElementById('speed-slider');
+    slider.addEventListener('input', () => {
+      speed = +slider.value;
+      document.getElementById('speed-val').textContent = speed + 'ms';
+      updateSpeedDesc();
+    });
+
+    // Mode buttons
+    document.querySelectorAll('.mode-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        readMode = btn.dataset.mode;
+        document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('on'));
+        btn.classList.add('on');
+        updateSpeedDesc();
+      });
+    });
+
+    // Start
+    document.getElementById('start-btn').addEventListener('click', startGame);
+
+    updateCount();
+    updateSpeedDesc();
+  }
+
+  function toggleLevel(l, btn) {
+    if (activeLevels.has(l)) activeLevels.delete(l);
+    else activeLevels.add(l);
+    const on = activeLevels.has(l);
+    btn.classList.toggle('on', on);
+    btn.style.borderColor = on ? '#a78bfa' : '#1e1e1e';
+    btn.style.color       = on ? '#a78bfa' : '#333';
+    updateCount();
+  }
+
+  function toggleCat(c, btn) {
+    if (activeCats.has(c)) activeCats.delete(c);
+    else activeCats.add(c);
+    const on = activeCats.has(c);
+    btn.classList.toggle('on', on);
+    btn.style.borderColor = on ? CAT_ACCENT[c] : '#1e1e1e';
+    btn.style.color       = on ? CAT_ACCENT[c] : '#333';
+    updateCount();
+  }
+
+  function filteredQuestions() {
+    const kw = keyword.trim().toLowerCase();
+    return allQuestions.filter(q => {
+      if (!activeLevels.has(q.level))    return false;
+      if (!activeCats.has(q.category))   return false;
+      if (!kw) return true;
+      const hay = [
+        q.question, q.answer,
+        ...(q.bonuses || []).flatMap(b => [b.q, b.a])
+      ].join(' ').toLowerCase();
+      return hay.includes(kw);
+    });
+  }
+
+  function updateCount() {
+    const n = filteredQuestions().length;
+    document.getElementById('match-count').textContent = n;
+    document.getElementById('match-label').textContent =
+      ' question' + (n !== 1 ? 's' : '') + ' matched';
+    const btn = document.getElementById('start-btn');
+    btn.disabled = n === 0;
+  }
+
+  function updateSpeedDesc() {
+    const label = speed < 40 ? 'Very fast' : speed < 80 ? 'Fast' :
+                  speed < 140 ? 'Medium' : speed < 220 ? 'Slow' : 'Very slow';
+    const modeStr = readMode === 'word' ? 'one word at a time' : 'one character at a time';
+    document.getElementById('speed-desc').textContent = `${label} · ${modeStr}`;
+  }
+
+  // ── GAME ──────────────────────────────────────────────────────────────────
+  function shuffle(arr) {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  function startGame() {
+    sessionQueue = shuffle(filteredQuestions());
+    qIdx = 0;
+    document.getElementById('back-btn').addEventListener('click', () => {
+      clearInterval(ticker);
+      show('screen-home');
+    }, { once: false });
+    loadQuestion();
+    show('screen-game');
+  }
+
+  function tok(str) {
+    return readMode === 'word' ? str.split(' ') : str.split('');
+  }
+  function join(toks, n) {
+    return readMode === 'word' ? toks.slice(0, n).join(' ') : toks.slice(0, n).join('');
+  }
+
+  function loadQuestion() {
+    clearInterval(ticker);
+    phase = 'reading';
+    revealed = 0;
+    bonusRevealed = 0;
+
+    const q = sessionQueue[qIdx];
+    const accent = CAT_ACCENT[q.category];
+
+    // Top bar
+    const badgeCat = document.getElementById('badge-cat');
+    badgeCat.textContent = q.category;
+    badgeCat.style.borderColor = accent;
+    badgeCat.style.color = accent;
+    document.getElementById('badge-level').textContent = q.level;
+    document.getElementById('q-count').textContent = `${qIdx + 1}/${sessionQueue.length}`;
+
+    // Card accent
+    document.getElementById('ans-label').style.color = accent;
+    document.getElementById('prog-fill').style.background = accent;
+    document.getElementById('phase-label').style.color = accent;
+
+    // Game screen background
+    const gameEl = document.getElementById('screen-game');
+    // Remove old cat class
+    CATS.forEach(c => gameEl.classList.remove('cat-' + c));
+    gameEl.classList.add('cat-' + q.category);
+    gameEl.style.background = getComputedStyle(gameEl).getPropertyValue('--bg').trim() ||
+      ({ Mythology:'#1e1228', History:'#0f1f12', Literature:'#12122a', Language:'#1f0f0f', PMAQ:'#0d1a28' })[q.category];
+
+    // Hide answer box
+    document.getElementById('ans-box').style.display = 'none';
+
+    setPhase('reading');
+  }
+
+  function setPhase(p) {
+    phase = p;
+    clearInterval(ticker);
+
+    const q = sessionQueue[qIdx];
+    const mainToks = tok(q.question);
+    const b1Toks   = q.bonuses?.[0] ? tok(q.bonuses[0].q) : [];
+    const b2Toks   = q.bonuses?.[1] ? tok(q.bonuses[1].q) : [];
+    const accent   = CAT_ACCENT[q.category];
+
+    // Determine which text & tokens we're dealing with
+    let activeToks, activeRev, setRev;
+    if (p === 'reading' || p === 'paused' || p === 'answer') {
+      activeToks = mainToks; activeRev = revealed; setRev = v => { revealed = v; };
+    } else if (p === 'b1r' || p === 'b1p' || p === 'b1a') {
+      activeToks = b1Toks; activeRev = bonusRevealed; setRev = v => { bonusRevealed = v; };
+    } else {
+      activeToks = b2Toks; activeRev = bonusRevealed; setRev = v => { bonusRevealed = v; };
+    }
+
+    // Phase label
+    const phaseLabels = {
+      reading:'TOSS-UP', paused:'TOSS-UP', answer:'TOSS-UP',
+      b1r:'BONUS 1', b1p:'BONUS 1', b1a:'BONUS 1',
+      b2r:'BONUS 2', b2p:'BONUS 2', b2a:'BONUS 2',
+    };
+    document.getElementById('phase-label').textContent = phaseLabels[p] || 'TOSS-UP';
+
+    // Ticker for reading phases
+    if (p === 'reading' || p === 'b1r' || p === 'b2r') {
+      ticker = setInterval(() => {
+        activeRev++;
+        setRev(activeRev);
+        renderText(activeToks, activeRev, true, accent);
+        const pct = activeToks.length > 0 ? (activeRev / activeToks.length) * 100 : 0;
+        document.getElementById('prog-fill').style.width = pct + '%';
+        if (activeRev >= activeToks.length) {
+          clearInterval(ticker);
+          const next = { reading:'paused', b1r:'b1p', b2r:'b2p' }[p];
+          if (next) setPhase(next);
+        }
+      }, speed);
+    }
+
+    // Render current text
+    const showCaret = (p === 'reading' || p === 'b1r' || p === 'b2r');
+    renderText(activeToks, activeRev, showCaret, accent);
+
+    // Progress bar
+    const pct = activeToks.length > 0 ? (activeRev / activeToks.length) * 100 : 0;
+    document.getElementById('prog-fill').style.width = pct + '%';
+
+    // Answer box
+    const ansBox  = document.getElementById('ans-box');
+    const ansText = document.getElementById('ans-text');
+    if (p === 'answer') {
+      ansText.textContent = q.answer;
+      ansBox.style.display = 'block';
+      ansBox.style.borderColor = accent + '55';
+      ansBox.style.background  = accent + '10';
+    } else if (p === 'b1a' && q.bonuses?.[0]) {
+      ansText.textContent = q.bonuses[0].a;
+      ansBox.style.display = 'block';
+      ansBox.style.borderColor = accent + '55';
+      ansBox.style.background  = accent + '10';
+    } else if (p === 'b2a' && q.bonuses?.[1]) {
+      ansText.textContent = q.bonuses[1].a;
+      ansBox.style.display = 'block';
+      ansBox.style.borderColor = accent + '55';
+      ansBox.style.background  = accent + '10';
+    } else {
+      ansBox.style.display = 'none';
+    }
+
+    renderActions(p, q, accent);
+  }
+
+  function renderText(toks, rev, showCaret, accent) {
+    const el = document.getElementById('q-text');
+    el.textContent = join(toks, rev);
+    if (showCaret) {
+      const c = document.createElement('span');
+      c.className = 'caret';
+      c.style.borderColor = accent;
+      el.appendChild(c);
+    }
+  }
+
+  function revealNow() {
+    clearInterval(ticker);
+    const q = sessionQueue[qIdx];
+    const mainToks = tok(q.question);
+    const b1Toks   = q.bonuses?.[0] ? tok(q.bonuses[0].q) : [];
+    const b2Toks   = q.bonuses?.[1] ? tok(q.bonuses[1].q) : [];
+
+    if (phase === 'reading' || phase === 'paused') {
+      revealed = mainToks.length; setPhase('answer');
+    } else if (phase === 'b1r' || phase === 'b1p') {
+      bonusRevealed = b1Toks.length; setPhase('b1a');
+    } else if (phase === 'b2r' || phase === 'b2p') {
+      bonusRevealed = b2Toks.length; setPhase('b2a');
+    }
+  }
+
+  function nextQuestion() {
+    clearInterval(ticker);
+    qIdx = (qIdx + 1) % sessionQueue.length;
+    loadQuestion();
+  }
+
+  function renderActions(p, q, accent) {
+    const area = document.getElementById('actions');
+    area.innerHTML = '';
+
+    const mk = (label, cls, onClick, style) => {
+      const b = document.createElement('button');
+      b.className = 'act-btn ' + cls;
+      b.textContent = label;
+      if (style) Object.assign(b.style, style);
+      b.addEventListener('click', onClick);
+      return b;
+    };
+
+    const isReading = p === 'reading' || p === 'paused' || p === 'b1r' || p === 'b1p' || p === 'b2r' || p === 'b2p';
+
+    if (isReading) {
+      const row = document.createElement('div');
+      row.className = 'btn-row';
+      row.appendChild(mk('Skip →', 'ghost', nextQuestion));
+      row.appendChild(mk('Reveal Answer', 'accent', revealNow,
+        { background: accent, color: '#060606' }));
+      area.appendChild(row);
+    }
+
+    if (p === 'answer') {
+      const col = document.createElement('div');
+      col.className = 'btn-col';
+      if (q.bonuses?.length > 0) {
+        col.appendChild(mk('Bonus Questions →', 'sub', () => {
+          bonusRevealed = 0; setPhase('b1r');
+        }, { background: accent + '15', color: accent, borderColor: accent + '44' }));
+      }
+      col.appendChild(mk('Next Question →', 'accent', nextQuestion,
+        { background: accent, color: '#060606' }));
+      area.appendChild(col);
+    }
+
+    if (p === 'b1a') {
+      const col = document.createElement('div');
+      col.className = 'btn-col';
+      if (q.bonuses?.[1]) {
+        col.appendChild(mk('Bonus 2 →', 'sub', () => {
+          bonusRevealed = 0; setPhase('b2r');
+        }, { background: accent + '15', color: accent, borderColor: accent + '44' }));
+      }
+      col.appendChild(mk('Next Question →', 'accent', nextQuestion,
+        { background: accent, color: '#060606' }));
+      area.appendChild(col);
+    }
+
+    if (p === 'b2a') {
+      area.appendChild(mk('Next Question →', 'accent full', nextQuestion,
+        { background: accent, color: '#060606' }));
+    }
+  }
+
+  // ── BACK BUTTON (persistent) ──────────────────────────────────────────────
+  document.getElementById('back-btn').addEventListener('click', () => {
+    clearInterval(ticker);
+    show('screen-home');
+    updateCount();
+  });
+  </script>
+</body>
+</html>
