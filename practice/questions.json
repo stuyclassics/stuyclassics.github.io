@@ -5574,39 +5574,77 @@
     ]
   },
   {
-    "id": "l-adv-005",
-    "level": "Advanced",
-    "category": "Literature",
-    "question": "What Latin epic opens with a description of a dream experienced by its author, refers to the Muses by their Greek name for the first time, and recounts Roman history in 18 books of hexameter by Ennius? (ENNIUS’S) ANNĀLĒS B1: By what name had the Muses been called in the opening line of Livius Andronicus’s Odusia? CAMĒNAE B2: Ennius was consistently creative with his language. What word did he coin as an onomatopoeia for the sound of a trumpet? TARATANTARA **SCORE CHECK** Advanced — Preliminary Round Two 20. Which of the following human body parts is not derived from a Latin word for something edible: “muscle,” “clavicle,” “uvula,” “nucleus?”",
-    "answer": "CLAVICLE",
-    "bonuses": [
-      {
-        "q": "All of the words from this list have a specific grammatical distinction in common. What is this distinctive quality?",
-        "a": "SMALL / DIMINUTIVE"
-      },
-      {
-        "q": "What English word, literally meaning “a little stomach,” can refer to a fluid-filled cavity in the brain?",
-        "a": "VENTRICLE Advanced — Preliminary Round Two Advanced — Preliminary Round Three"
-      }
-    ]
-  },
+  "id": "adv-r2-19",
+  "level": "Advanced",
+  "round": "Round II",
+  "category": "Literature",
+  "question": "What Latin epic opens with a description of a dream experienced by its author, refers to the Muses by their Greek name for the first time, and recounts Roman history in 18 books of hexameter?",
+  "answer": "ANNĀLĒS",
+  "bonuses": [
+    {
+      "q": "By what name had the Muses been called in the opening line of Livius Andronicus's Odusia?",
+      "a": "CAMĒNAE"
+    },
+    {
+      "q": "Ennius was consistently creative with his language. What word did he coin as an onomatopoeia for the sound of a trumpet?",
+      "a": "TARATANTARA"
+    }
+  ]
+},
+{
+  "id": "adv-r2-20",
+  "level": "Advanced",
+  "round": "Round II",
+  "category": "Language",
+  "question": "Which of the following human body parts is not derived from a Latin word for something edible: \"muscle,\" \"clavicle,\" \"uvula,\" \"nucleus?\"",
+  "answer": "CLAVICLE",
+  "bonuses": [
+    {
+      "q": "All of the words from this list have a specific grammatical distinction in common. What is this distinctive quality?",
+      "a": "SMALL / DIMINUTIVE"
+    },
+    {
+      "q": "What English word, literally meaning \"a little stomach,\" can refer to a fluid-filled cavity in the brain?",
+      "a": "VENTRICLE"
+    }
+  ]
+},
   {
-    "id": "l-adv-006",
-    "level": "Advanced",
-    "category": "Literature",
-    "question": "A man traveled from Cadiz just to see what author, whose lactea ubertās can be seen in the 35 extant books of a work that gave an annalistic account of Roman history ab urbe conditā?",
-    "answer": "LIVY // TITUS LIVIUS",
-    "bonuses": [
-      {
-        "q": "What poet from the Flavian period used books 21-30 of Livy as his main source for the historical detail in his lengthy 17-book poem? (TIBERIUS CATIUS ASCONIUS) SILIUS ITALICUS B2: What magister memoriae in the late empire used Livy as a source for Books 1-6 of a 10-book history of Rome? EUTROPIUS 2. Of the verbs latrō, serpō, ambulō, saltō, which best describes a coluber or anguis, that is, a snake?",
-        "a": "SERPŌ B1: Which of the following verbs could be used to describe a bōs: cantō, latrō, volō, mugiō? MUGIŌ"
-      },
-      {
-        "q": "Which of the following verbs could be used to describe an apis: bombiō, clamō, currō, ululō?",
-        "a": "BOMBIŌ"
-      }
-    ]
-  },
+  "id": "adv-r3-01",
+  "level": "Advanced",
+  "round": "Round III",
+  "category": "Literature",
+  "question": "A man traveled from Cadiz just to see what author, whose lactea ubertās can be seen in the 35 extant books of a work that gave an annalistic account of Roman history ab urbe conditā?",
+  "answer": "LIVY / TITUS LIVIUS",
+  "bonuses": [
+    {
+      "q": "What poet from the Flavian period used books 21-30 of Livy as his main source for the historical detail in his lengthy 17-book poem?",
+      "a": "SILIUS ITALICUS"
+    },
+    {
+      "q": "What magister memoriae in the late empire used Livy as a source for Books 1-6 of a 10-book history of Rome?",
+      "a": "EUTROPIUS"
+    }
+  ]
+},
+{
+  "id": "adv-r3-02",
+  "level": "Advanced",
+  "round": "Round III",
+  "category": "Vocabulary",
+  "question": "Of the verbs latrō, serpō, ambulō, saltō, which best describes a coluber or anguis, that is, a snake?",
+  "answer": "SERPŌ",
+  "bonuses": [
+    {
+      "q": "Which of the following verbs could be used to describe a bōs: cantō, latrō, volō, mugiō?",
+      "a": "MUGIŌ"
+    },
+    {
+      "q": "Which of the following verbs could be used to describe an apis: bombiō, clamō, currō, ululō?",
+      "a": "BOMBIŌ"
+    }
+  ]
+},
   {
     "id": "h-adv-012",
     "level": "Advanced",
