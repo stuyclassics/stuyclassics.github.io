@@ -5081,22 +5081,23 @@
     ]
   },
   {
-    "id": "la-int-014",
-    "level": "Intermediate",
-    "category": "Language",
-    "question": "Say in good Latin using discō: “Do not ask how Caesar learned to fight.” Keep in mind that the third principal part of discō is didicī.",
-    "answer": "NŌLĪ(TE) {QUAERERE / ROGĀRE} QUŌMODO CAESAR PUGNĀRE DIDICERIT",
-    "bonuses": [
-      {
-        "q": "Now say in good Latin: “Let us follow virtue in order to live a good life.”",
-        "a": "VIRTŪTEM SEQUĀMUR UT BONAM VĪTAM VĪVĀMUS"
-      },
-      {
-        "q": "Now say in good Latin: “Let no one say that we have not followed virtue.”",
-        "a": "NĒMŌ {DĪCAT / LOQUĀTUR} NŌS VIRTŪTEM NŌN SECŪTŌS/-ĀS ESSE"
-      }
-    ]
-  },
+  "id": "nov-r1-03",
+  "level": "Novice",
+  "round": "Round I",
+  "category": "History",
+  "question": "Which Roman emperor, having served as lēgātus of legiō II Augusta during the Roman invasion of Britannia in 43 AD and having subjugated Judaea during the Jewish Rebellion of 66 AD, became the first of the Flavian emperors?",
+  "answer": "VESPASIAN(US)",
+  "bonuses": [
+    {
+      "q": "Whom did Vespasian leave to besiege Jerusalem while he joined forces with his allies to head back to Rome?",
+      "a": "TITUS"
+    },
+    {
+      "q": "Which of Vespasian's supporters gained a decisive victory over the forces of Vitellius at Bedriacum in October of 69 AD?",
+      "a": "ANTONIUS PRIMUS"
+    }
+  ]
+},
   {
     "id": "m-int-017",
     "level": "Intermediate",
