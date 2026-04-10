@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>✦ CERTAMEN ✦</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0c0c10;
+  --bg2:#13131a;
+  --bg3:#1a1a24;
+  --border:#2a2a38;
+  --border2:#3a3a50;
+  --text:#e8e6f0;
+  --text2:#9994b0;
+  --text3:#5c5875;
+  --gold:#c9a84c;
+  --gold2:#e8c96a;
+  --gold3:#f5e4a8;
+  --accent:#7b6faa;
+  --accent2:#a898d8;
+  --card:#16161f;
+  --card2:#1c1c28;
+  --serif:'EB Garamond',Georgia,serif;
+  --mono:'Share Tech Mono',monospace;
+}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--mono);overflow:hidden}
+body{display:flex;flex-direction:column}
+
+/* SCREENS */
+#screen-loading,#screen-error,#screen-home,#screen-game{
+  position:absolute;inset:0;display:flex;flex-direction:column;
+  transition:opacity .3s ease;
+}
+.hidden{opacity:0;pointer-events:none}
+
+/* LOADING */
+#screen-loading{align-items:center;justify-content:center;background:var(--bg)}
+.loading-label{font-family:var(--mono);font-size:11px;letter-spacing:.25em;color:var(--text3);text-transform:uppercase;animation:pulse 1.5s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:.3}50%{opacity:1}}
+
+/* ERROR */
+#screen-error{align-items:center;justify-content:center;background:var(--bg);padding:2rem;text-align:center}
+.error-msg{font-family:var(--mono);font-size:13px;color:#c0607a;letter-spacing:.05em;max-width:380px;line-height:1.8}
+
+/* HOME */
+#screen-home{align-items:center;justify-content:flex-start;overflow-y:auto;background:var(--bg);padding:3rem 1.5rem 4rem}
+.home-inner{width:100%;max-width:440px;margin:0 auto;display:flex;flex-direction:column;gap:2.5rem}
+
+.title-block{text-align:center;padding:1rem 0}
+.title-main{font-family:var(--serif);font-size:clamp(28px,6vw,42px);font-weight:400;letter-spacing:.1em;color:var(--gold3);text-transform:uppercase}
+.title-sub{font-family:var(--mono);font-size:10px;letter-spacing:.3em;color:var(--text3);margin-top:.5rem;text-transform:uppercase}
+
+.home-section{display:flex;flex-direction:column;gap:.75rem}
+.section-label{font-size:10px;letter-spacing:.2em;color:var(--text3);text-transform:uppercase}
+
+.search-wrap{position:relative;display:flex;align-items:center}
+.search-wrap input{
+  width:100%;background:var(--bg3);border:1px solid var(--border);
+  color:var(--text);font-family:var(--mono);font-size:13px;
+  padding:.65rem 2.5rem .65rem .85rem;border-radius:4px;outline:none;
+  transition:border-color .2s;
+}
+.search-wrap input::placeholder{color:var(--text3)}
+.search-wrap input:focus{border-color:var(--border2)}
+.clear-btn{
+  position:absolute;right:.6rem;background:none;border:none;
+  color:var(--text3);cursor:pointer;font-size:15px;line-height:1;
+  padding:4px;display:none;
+}
+.clear-btn:hover{color:var(--text2)}
+
+.speed-row{display:flex;align-items:center;gap:.75rem}
+.mode-toggle{display:flex;border:1px solid var(--border);border-radius:3px;overflow:hidden}
+.mode-btn{
+  font-family:var(--mono);font-size:11px;letter-spacing:.1em;
+  background:none;border:none;color:var(--text3);padding:.35rem .7rem;
+  cursor:pointer;transition:all .15s;text-transform:uppercase;
+}
+.mode-btn.active{background:var(--bg3);color:var(--text)}
+input[type=range]{
+  flex:1;-webkit-appearance:none;appearance:none;
+  height:2px;background:var(--border);border-radius:2px;outline:none;cursor:pointer;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;appearance:none;
+  width:12px;height:12px;border-radius:50%;background:var(--gold);cursor:pointer;
+}
+input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:50%;background:var(--gold);cursor:pointer;border:none}
+.speed-val{font-size:12px;color:var(--text2);min-width:45px;text-align:right}
+.speed-desc{font-size:11px;color:var(--text3)}
+
+.match-block{text-align:center;padding:.5rem 0}
+.match-num{font-family:var(--serif);font-size:52px;font-weight:400;color:var(--gold2);line-height:1}
+.match-label{font-size:11px;letter-spacing:.15em;color:var(--text3);margin-top:.3rem;text-transform:uppercase}
+
+.begin-btn{
+  width:100%;padding:.85rem;background:transparent;
+  border:1px solid var(--gold);border-radius:4px;
+  font-family:var(--mono);font-size:12px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--gold2);cursor:pointer;transition:all .2s;
+}
+.begin-btn:hover:not(:disabled){background:var(--gold);color:var(--bg)}
+.begin-btn:disabled{opacity:.25;cursor:not-allowed;border-color:var(--text3);color:var(--text3)}
+
+/* GAME */
+#screen-game{background:var(--bg);display:flex;flex-direction:column}
+
+.top-bar{
+  display:grid;grid-template-columns:1fr auto 1fr;align-items:center;
+  padding:.65rem 1rem;border-bottom:1px solid var(--border);flex-shrink:0;
+}
+.back-btn{
+  font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--text3);background:none;border:none;cursor:pointer;
+  display:flex;align-items:center;gap:.4rem;padding:.25rem .5rem;
+  border-radius:3px;transition:color .15s;width:fit-content;
+}
+.back-btn:hover{color:var(--text)}
+.progress-count{
+  font-family:var(--mono);font-size:12px;letter-spacing:.05em;color:var(--text3);text-align:center;
+}
+.top-right{display:flex;justify-content:flex-end}
+.info-btn{
+  font-family:var(--mono);font-size:13px;color:var(--text3);
+  background:none;border:1px solid var(--border);border-radius:50%;
+  width:26px;height:26px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:all .15s;position:relative;
+}
+.info-btn:hover{border-color:var(--border2);color:var(--text2)}
+.info-btn.active{border-color:var(--accent);color:var(--accent2)}
+
+.info-panel{
+  position:absolute;top:calc(100% + 8px);right:0;
+  background:var(--card2);border:1px solid var(--border2);border-radius:4px;
+  padding:.75rem 1rem;min-width:180px;z-index:100;
+  display:none;
+}
+.info-panel.open{display:block}
+.info-row{display:flex;justify-content:space-between;gap:1.5rem;margin:.25rem 0;font-size:11px}
+.info-key{color:var(--text3);text-transform:uppercase;letter-spacing:.1em}
+.info-val{color:var(--text2)}
+
+.progress-bar-wrap{height:2px;background:var(--border);flex-shrink:0}
+.progress-bar-fill{height:100%;background:var(--gold);transition:width .08s linear;width:0%}
+
+.game-main{flex:1;overflow-y:auto;display:flex;flex-direction:column;align-items:center;padding:2rem 1.25rem 1.5rem;gap:1.5rem}
+
+.phase-label{
+  font-family:var(--mono);font-size:10px;letter-spacing:.25em;
+  text-transform:uppercase;color:var(--text3);align-self:flex-start;
+  max-width:640px;width:100%;
+}
+
+.question-card{
+  width:100%;max-width:640px;background:var(--card);border:1px solid var(--border);
+  border-radius:6px;padding:1.75rem 2rem;min-height:160px;position:relative;
+}
+.question-text{
+  font-family:var(--serif);font-size:clamp(17px,2.5vw,21px);
+  color:var(--text);line-height:1.75;
+}
+.caret{
+  display:inline-block;width:2px;height:1.1em;background:var(--gold);
+  vertical-align:text-bottom;margin-left:2px;animation:blink .7s step-end infinite;
+}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+
+.answer-box{
+  margin-top:1.5rem;padding-top:1.25rem;border-top:1px solid var(--border);
+  display:none;
+}
+.answer-box.visible{display:block}
+.answer-label{font-family:var(--mono);font-size:9px;letter-spacing:.2em;color:var(--text3);text-transform:uppercase;margin-bottom:.4rem}
+.answer-text{font-family:var(--serif);font-size:clamp(18px,2.8vw,23px);font-weight:500;color:var(--gold3)}
+
+.actions{
+  display:flex;flex-wrap:wrap;gap:.6rem;max-width:640px;width:100%;justify-content:flex-end;
+}
+.act-btn{
+  font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;
+  background:transparent;border:1px solid var(--border2);border-radius:3px;
+  color:var(--text2);padding:.55rem 1rem;cursor:pointer;transition:all .15s;
+}
+.act-btn:hover{background:var(--bg3);color:var(--text);border-color:var(--text3)}
+.act-btn.primary{border-color:var(--gold);color:var(--gold2)}
+.act-btn.primary:hover{background:var(--gold);color:var(--bg)}
+
+/* scrollbar */
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div id="screen-loading">
+  <span class="loading-label">loading</span>
+</div>
+
+<!-- ERROR -->
+<div id="screen-error" class="hidden">
+  <p class="error-msg" id="error-msg">failed to load questions</p>
+</div>
+
+<!-- HOME -->
+<div id="screen-home" class="hidden">
+  <div class="home-inner">
+    <div class="title-block">
+      <div class="title-main">✦ MYTH PRACTICE ✦</div>
+      <div class="title-sub">On Naimul's Request</div>
+    </div>
+
+    <div class="home-section">
+      <div class="section-label">Keyword Search</div>
+      <div class="search-wrap">
+        <input type="text" id="keyword-input" placeholder="filter by keyword…" autocomplete="off" spellcheck="false">
+        <button class="clear-btn" id="clear-btn" title="Clear">×</button>
+      </div>
+    </div>
+
+    <div class="home-section">
+      <div class="section-label">Reading Speed</div>
+      <div class="speed-row">
+        <div class="mode-toggle">
+          <button class="mode-btn active" data-mode="word" id="btn-word">Word</button>
+          <button class="mode-btn" data-mode="char" id="btn-char">Char</button>
+        </div>
+        <input type="range" id="speed-slider" min="15" max="350" value="80">
+        <span class="speed-val" id="speed-val">80ms</span>
+      </div>
+      <div class="speed-desc" id="speed-desc">Fast · one word at a time</div>
+    </div>
+
+    <div class="match-block">
+      <div class="match-num" id="match-num">0</div>
+      <div class="match-label">questions matched</div>
+    </div>
+
+    <button class="begin-btn" id="begin-btn" disabled>Begin Session</button>
+  </div>
+</div>
+
+<!-- GAME -->
+<div id="screen-game" class="hidden">
+  <div class="top-bar">
+    <button class="back-btn" id="back-btn">← Back</button>
+    <div class="progress-count" id="progress-count">1/1</div>
+    <div class="top-right">
+      <div style="position:relative">
+        <button class="info-btn" id="info-btn" title="Source info">i</button>
+        <div class="info-panel" id="info-panel">
+          <div class="info-row"><span class="info-key">School</span><span class="info-val" id="info-school">—</span></div>
+          <div class="info-row"><span class="info-key">Year</span><span class="info-val" id="info-year">—</span></div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="progress-bar-wrap">
+    <div class="progress-bar-fill" id="prog-fill"></div>
+  </div>
+
+  <div class="game-main">
+    <div class="phase-label" id="phase-label">Toss-Up</div>
+    <div class="question-card">
+      <div class="question-text" id="question-text"></div>
+      <div class="answer-box" id="answer-box">
+        <div class="answer-label">Answer</div>
+        <div class="answer-text" id="answer-text"></div>
+      </div>
+    </div>
+    <div class="actions" id="actions"></div>
+  </div>
+</div>
+
+<script>
+const CSV_URL = 'questions.csv';
+
+let allQuestions = [];
+let filtered = [];
+let keyword = '';
+let readMode = 'word';
+let speed = 80;
+let sessionQueue = [];
+let qIdx = 0;
+let phase = 'tu-reading';
+let revealed = 0;
+let ticker = null;
+let infoOpen = false;
+
+const $ = id => document.getElementById(id);
+
+function show(id) {
+  ['loading','error','home','game'].forEach(s => {
+    const el = $('screen-'+s);
+    if (s === id) el.classList.remove('hidden');
+    else el.classList.add('hidden');
+  });
+}
+
+async function init() {
+  show('loading');
+  try {
+    const res = await fetch(CSV_URL);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const txt = await res.text();
+    allQuestions = parseCSV(txt);
+    filtered = allQuestions.slice();
+    buildHome();
+    show('home');
+  } catch(e) {
+    $('error-msg').textContent = e.message || 'failed to load questions';
+    show('error');
+  }
+}
+
+function parseCSV(text) {
+  const lines = text.split(/\r?\n/);
+  const rows = [];
+  for (const line of lines) {
+    if (line.trim() === '') continue;
+    rows.push(parseCSVRow(line));
+  }
+  if (rows.length < 1) throw new Error('empty csv');
+  const header = rows[0].map(h => h.trim().toLowerCase());
+  const need = ['school','year','type','question','answer'];
+  for (const col of need) {
+    if (!header.includes(col)) throw new Error('missing column: ' + col);
+  }
+  const col = c => header.indexOf(c);
+  const data = rows.slice(1);
+  if (data.length % 3 !== 0) throw new Error('row count not divisible by 3 (' + data.length + ' rows)');
+  const result = [];
+  for (let i = 0; i < data.length; i += 3) {
+    const a = data[i], b = data[i+1], c2 = data[i+2];
+    if (!a || !b || !c2) throw new Error('malformed group near row ' + (i+2));
+    const typeA = (a[col('type')] || '').trim().toLowerCase();
+    const typeB = (b[col('type')] || '').trim().toLowerCase();
+    const typeC = (c2[col('type')] || '').trim().toLowerCase();
+    if (typeA !== 'tossup') throw new Error('expected tossup at row ' + (i+2) + ', got: ' + typeA);
+    if (typeB !== 'bonus') throw new Error('expected bonus at row ' + (i+3));
+    if (typeC !== 'bonus') throw new Error('expected bonus at row ' + (i+4));
+    const school = (a[col('school')] || '').trim();
+    const year = (a[col('year')] || '').trim();
+    const tuQ = (a[col('question')] || '').trim();
+    const tuA = (a[col('answer')] || '').trim();
+    const b1Q = (b[col('question')] || '').trim();
+    const b1A = (b[col('answer')] || '').trim();
+    const b2Q = (c2[col('question')] || '').trim();
+    const b2A = (c2[col('answer')] || '').trim();
+    if (!tuQ || !tuA || !b1Q || !b1A || !b2Q || !b2A) throw new Error('empty field in group near row ' + (i+2));
+    result.push({ school, year, question: tuQ, answer: tuA, bonuses: [{q:b1Q,a:b1A},{q:b2Q,a:b2A}] });
+  }
+  return result;
+}
+
+function parseCSVRow(line) {
+  const result = [];
+  let cur = '';
+  let inQ = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (ch === '"') {
+      if (inQ && line[i+1] === '"') { cur += '"'; i++; }
+      else inQ = !inQ;
+    } else if (ch === ',' && !inQ) {
+      result.push(cur); cur = '';
+    } else {
+      cur += ch;
+    }
+  }
+  result.push(cur);
+  return result;
+}
+
+function buildHome() {
+  updateFilter();
+  $('keyword-input').addEventListener('input', e => {
+    keyword = e.target.value;
+    $('clear-btn').style.display = keyword ? 'block' : 'none';
+    updateFilter();
+  });
+  $('clear-btn').addEventListener('click', () => {
+    keyword = '';
+    $('keyword-input').value = '';
+    $('clear-btn').style.display = 'none';
+    updateFilter();
+  });
+  $('btn-word').addEventListener('click', () => setMode('word'));
+  $('btn-char').addEventListener('click', () => setMode('char'));
+  $('speed-slider').addEventListener('input', e => {
+    speed = parseInt(e.target.value);
+    updateSpeedUI();
+  });
+  $('begin-btn').addEventListener('click', beginSession);
+  updateSpeedUI();
+}
+
+function setMode(m) {
+  readMode = m;
+  $('btn-word').classList.toggle('active', m === 'word');
+  $('btn-char').classList.toggle('active', m === 'char');
+  updateSpeedUI();
+}
+
+function updateSpeedUI() {
+  $('speed-val').textContent = speed + 'ms';
+  const fast = speed < 80;
+  const slow = speed > 200;
+  const label = fast ? 'Fast' : slow ? 'Slow' : 'Medium';
+  const unit = readMode === 'word' ? 'one word at a time' : 'one character at a time';
+  $('speed-desc').textContent = label + ' · ' + unit;
+}
+
+function updateFilter() {
+  const kw = keyword.toLowerCase();
+  if (!kw) {
+    filtered = allQuestions.slice();
+  } else {
+    filtered = allQuestions.filter(q => {
+      return (q.question + q.answer + q.bonuses[0].q + q.bonuses[0].a + q.bonuses[1].q + q.bonuses[1].a + q.school + q.year).toLowerCase().includes(kw);
+    });
+  }
+  $('match-num').textContent = filtered.length;
+  $('begin-btn').disabled = filtered.length === 0;
+}
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function beginSession() {
+  stopTicker();
+  sessionQueue = shuffle(filtered);
+  qIdx = 0;
+  show('game');
+  setupGameListeners();
+  loadQuestion();
+}
+
+function setupGameListeners() {
+  $('back-btn').onclick = () => { stopTicker(); show('home'); };
+  $('info-btn').onclick = (e) => {
+    e.stopPropagation();
+    infoOpen = !infoOpen;
+    $('info-panel').classList.toggle('open', infoOpen);
+    $('info-btn').classList.toggle('active', infoOpen);
+  };
+  document.addEventListener('click', () => {
+    if (infoOpen) { infoOpen = false; $('info-panel').classList.remove('open'); $('info-btn').classList.remove('active'); }
+  }, { capture: false });
+}
+
+function loadQuestion() {
+  stopTicker();
+  const q = sessionQueue[qIdx % sessionQueue.length];
+  $('progress-count').textContent = (qIdx % sessionQueue.length + 1) + '/' + sessionQueue.length;
+  $('info-school').textContent = q.school || '—';
+  $('info-year').textContent = q.year || '—';
+  setPhase('tu-reading');
+}
+
+function currentQ() { return sessionQueue[qIdx % sessionQueue.length]; }
+
+function setPhase(p) {
+  stopTicker();
+  phase = p;
+  revealed = 0;
+  $('answer-box').classList.remove('visible');
+  const q = currentQ();
+
+  const phaseLabels = {
+    'tu-reading': 'Toss-Up', 'tu-paused': 'Toss-Up', 'tu-answer': 'Toss-Up',
+    'b1-reading': 'Bonus 1', 'b1-paused': 'Bonus 1', 'b1-answer': 'Bonus 1',
+    'b2-reading': 'Bonus 2', 'b2-paused': 'Bonus 2', 'b2-answer': 'Bonus 2',
+  };
+  $('phase-label').textContent = phaseLabels[p] || '';
+
+  let text = '';
+  if (p.startsWith('tu')) text = q.question;
+  else if (p.startsWith('b1')) text = q.bonuses[0].q;
+  else if (p.startsWith('b2')) text = q.bonuses[1].q;
+
+  const tokens = readMode === 'word' ? text.split(' ') : text.split('');
+
+  if (p.endsWith('-answer')) {
+    revealed = tokens.length;
+    renderText(text, tokens, revealed, false);
+    let ans = '';
+    if (p === 'tu-answer') ans = q.answer;
+    else if (p === 'b1-answer') ans = q.bonuses[0].a;
+    else ans = q.bonuses[1].a;
+    $('answer-text').textContent = ans;
+    $('answer-box').classList.add('visible');
+  } else if (p.endsWith('-paused')) {
+    revealed = tokens.length;
+    renderText(text, tokens, revealed, false);
+  } else {
+    renderText(text, tokens, 0, true);
+    startTicker(text, tokens);
+  }
+
+  updateProgress(revealed, tokens.length);
+  renderActions(p);
+}
+
+function getTokens(text) {
+  return readMode === 'word' ? text.split(' ') : text.split('');
+}
+
+function renderText(text, tokens, count, showCaret) {
+  const visible = readMode === 'word'
+    ? tokens.slice(0, count).join(' ')
+    : tokens.slice(0, count).join('');
+  $('question-text').innerHTML = escapeHTML(visible) + (showCaret && count < tokens.length ? '<span class="caret"></span>' : '');
+}
+
+function escapeHTML(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function updateProgress(rev, total) {
+  const pct = total > 0 ? Math.min(100, (rev / total) * 100) : 0;
+  $('prog-fill').style.width = pct + '%';
+}
+
+function startTicker(text, tokens) {
+  stopTicker();
+  ticker = setInterval(() => {
+    revealed++;
+    renderText(text, tokens, revealed, revealed < tokens.length);
+    updateProgress(revealed, tokens.length);
+    if (revealed >= tokens.length) {
+      stopTicker();
+      const p2 = phase.replace('-reading', '-paused');
+      phase = p2;
+      renderActions(p2);
+    }
+  }, speed);
+}
+
+function stopTicker() {
+  if (ticker) { clearInterval(ticker); ticker = null; }
+}
+
+function revealAnswer() {
+  stopTicker();
+  const q = currentQ();
+  const text = phase.startsWith('tu') ? q.question : phase.startsWith('b1') ? q.bonuses[0].q : q.bonuses[1].q;
+  const tokens = getTokens(text);
+  revealed = tokens.length;
+  renderText(text, tokens, revealed, false);
+  updateProgress(revealed, tokens.length);
+  const ans = phase.startsWith('tu') ? q.answer : phase.startsWith('b1') ? q.bonuses[0].a : q.bonuses[1].a;
+  $('answer-text').textContent = ans;
+  $('answer-box').classList.add('visible');
+  const base = phase.split('-')[0];
+  phase = base + '-answer';
+  renderActions(phase);
+}
+
+function nextQuestion() {
+  qIdx = (qIdx + 1) % sessionQueue.length;
+  loadQuestion();
+}
+
+function renderActions(p) {
+  const el = $('actions');
+  el.innerHTML = '';
+  const btn = (label, cls, fn) => {
+    const b = document.createElement('button');
+    b.className = 'act-btn' + (cls ? ' ' + cls : '');
+    b.textContent = label;
+    b.onclick = fn;
+    el.appendChild(b);
+  };
+  if (p === 'tu-reading' || p === 'tu-paused') {
+    btn('Skip →', '', nextQuestion);
+    btn('Reveal Answer', 'primary', revealAnswer);
+  } else if (p === 'tu-answer') {
+    btn('Next Question →', '', nextQuestion);
+    btn('Bonus Questions →', 'primary', () => setPhase('b1-reading'));
+  } else if (p === 'b1-reading' || p === 'b1-paused') {
+    btn('Skip →', '', nextQuestion);
+    btn('Reveal Answer', 'primary', revealAnswer);
+  } else if (p === 'b1-answer') {
+    btn('Next Question →', '', nextQuestion);
+    btn('Bonus 2 →', 'primary', () => setPhase('b2-reading'));
+  } else if (p === 'b2-reading' || p === 'b2-paused') {
+    btn('Skip →', '', nextQuestion);
+    btn('Reveal Answer', 'primary', revealAnswer);
+  } else if (p === 'b2-answer') {
+    btn('Next Question →', 'primary', nextQuestion);
+  }
+}
+
+init();
+</script>
+</body>
+</html>
