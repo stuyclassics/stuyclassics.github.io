@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#101110">
-  <meta name="description" content="GOLD. A Certamen rarity game.">
-  <title>GOLD | Certamen</title>
+  <meta name="theme-color" content="#100b1b">
+  <meta name="description" content="AURUM · Certamen">
+  <title>AURUM</title>
   <style>
     :root {
       color-scheme: dark;
@@ -62,7 +62,6 @@
     .brand-name { font-size: clamp(15px, 2.5vw, 23px); letter-spacing: .12em; line-height: 1.1; color: var(--gold-light); }
     .brand-sub { color: var(--gold-muted); font: 10px/1.7 'Times New Roman', Times, serif; letter-spacing: .19em; }
     .header-right { display: flex; align-items: center; gap: 16px; flex-shrink: 0; }
-    .edition { color: var(--gold-muted); font: 11px 'Times New Roman', Times, serif; letter-spacing: .14em; text-transform: uppercase; }
     .header-link { color: var(--ink); background: transparent; border: 1px solid var(--outline); border-radius: 30px; padding: 10px 17px; font: 12px 'Times New Roman', Times, serif; letter-spacing: .07em; }
     .header-link:hover { border-color: var(--gold); color: var(--gold-light); }
     #app { min-height: 620px; }
@@ -154,7 +153,6 @@
     .question-kicker::before { content: ''; width: 23px; height: 1px; background: #ab8b58; }
     .question-title { color: #28231c; font: 400 clamp(31px,4.5vw,46px)/1.18 'Times New Roman',Times,serif; letter-spacing: -.026em; margin: 0 0 21px; position:relative; }
     .question-hint { color: #5f5342; font: 14px/1.7 'Times New Roman',Times,serif; margin: 0; max-width: 540px; }
-    .question-hint::before { content: 'NOTE'; color: #97784b; font: 700 10px 'Times New Roman',Times,serif; letter-spacing: .17em; margin-right: 11px; }
     .question-answer-zone { background: #28183b; border-top: 1px solid #aa8955; padding: 30px clamp(25px,6vw,53px) 32px; }
     .answer-label { color: #e8c78d; display: block; font: 700 11px 'Times New Roman',Times,serif; letter-spacing: .14em; text-transform: uppercase; margin-bottom: 12px; }
     .answer-input { display: block; width: 100%; background: #150e21; color: #f8eedb; border: 1px solid #9575a6; border-radius: 9px; padding: 15px 18px; font: 20px/1.35 'Times New Roman',Times,serif; outline: none; }
@@ -212,7 +210,6 @@
       .brand-name { font-size: 14px; letter-spacing: .045em; }
       .brand-sub { font-size: 9px; }
       .brand-emblem { width: 37px; height: 37px; }
-      .edition { display: none; }
       .header-link { padding: 9px 12px; }
       .hero { padding-top: 44px; }
       .hero-coin { width: 136px; height: 136px; }
@@ -245,7 +242,7 @@
     .hero h1 span { font-style: italic; font-weight: 400; }
     .hero-coin { filter: drop-shadow(0 14px 40px rgba(153,92,200,.17)); }
     .lede { font-size: 18px; line-height: 1.6; }
-    .eyebrow, .mode-tab, .primary-button, .secondary-button, .edition, .brand-sub { font-weight: 700; }
+    .eyebrow, .mode-tab, .primary-button, .secondary-button, .brand-sub { font-weight: 700; }
     .mode-card { box-shadow: 0 24px 65px rgba(7,3,14,.45), inset 0 1px 0 rgba(242,207,157,.07); }
     .mode-tab[aria-selected="true"] { background: linear-gradient(110deg,rgba(111,64,152,.55),rgba(70,42,105,.4)); color: #fbe7bd; }
     .primary-button { background: linear-gradient(130deg,#f8df9a,#dfac58 70%,#b77932); border-color: #f8d38c; box-shadow: 0 8px 24px rgba(184,125,46,.13); }
@@ -294,6 +291,20 @@
       .rarity-pill small { font-size: 10px; }
       .hero h1 { font-size: clamp(43px,9vw,62px); }
     }
+
+    /* Compact home and score displays. */
+    .hero { padding: 59px 0 18px; }
+    .hero h1 { margin: 7px 0 8px; font-weight: 700; letter-spacing: .13em; font-size: clamp(50px, 7vw, 86px); }
+    .hero-coin { margin-bottom: 12px; }
+    .hero .gold-line { margin: 17px auto 23px; }
+    .mode-description { min-height: 18px; margin: 14px 0; }
+    .mode-description:empty { display: none; }
+    .mode-tabs + .mode-description:empty + .primary-button { margin-top: 20px; }
+    .result-tier[class*="tier-"]::before { content: ''; display: inline-block; width: 10px; height: 10px; margin-right: 11px; border-radius: 50%; background: var(--tier); box-shadow: 0 0 12px var(--tier-glow); vertical-align: middle; }
+    @media (max-width:640px) {
+      .hero { padding-top: 36px; }
+      .hero h1 { font-size: clamp(44px, 10vw, 58px); letter-spacing: .08em; }
+    }
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; }
     }
@@ -302,17 +313,16 @@
 <body>
   <div class="shell">
     <header class="header">
-      <div class="brand" aria-label="GOLD, a Certamen rarity game">
+      <div class="brand" aria-label="AURUM">
         <span class="brand-emblem" aria-hidden="true">✦</span>
-        <div><div class="brand-name">GOLD</div><div class="brand-sub">CERTAMEN</div></div>
+        <div><div class="brand-name">AURUM</div><div class="brand-sub">CERTAMEN</div></div>
       </div>
       <div class="header-right">
-        <span class="edition">EDITIO AUREA · MMXXVI</span>
         <button class="header-link" id="how-button" type="button">HOW TO PLAY</button>
       </div>
     </header>
     <main id="app" aria-live="off"></main>
-    <footer><strong>GOLD</strong> · MMXXVI</footer>
+    <footer><strong>AURUM</strong></footer>
   </div>
   <dialog id="how-dialog" aria-labelledby="how-title">
     <h2 id="how-title">How to play</h2>
@@ -331,16 +341,16 @@
 
     const SECONDS_PER_ROUND = 25;
     const ROUNDS_PER_GAME = 7;
-    const STORAGE_KEY = 'gold.daily.latest-seven.v1';
-    // Colored rarity tiers, from a common answer up to GOLD.
+    const STORAGE_KEY = 'aurum.daily.latest-seven.v1';
+    const PREVIOUS_STORAGE_KEY = 'gold.daily.latest-seven.v1';
     const TIERS = [
-      { minimum: 100, title: 'Aureus', label: 'GOLD', css: 'tier-gold', symbol: '🟨' },
-      { minimum: 80, title: 'Rarissimus', label: 'EXCEPTIONAL', css: 'tier-epic', symbol: '🟪' },
-      { minimum: 60, title: 'Rarus', label: 'RARE', css: 'tier-rare', symbol: '🟦' },
-      { minimum: 40, title: 'Insolitus', label: 'UNCOMMON', css: 'tier-uncommon', symbol: '🟩' },
-      { minimum: 25, title: 'Notus', label: 'FAMILIAR', css: 'tier-familiar', symbol: '⬜' },
-      { minimum: 10, title: 'Communis', label: 'COMMON', css: 'tier-common', symbol: '🟫' },
-      { minimum: 0, title: 'Nullus', label: 'NO ANSWER', css: 'tier-null', symbol: '⬛' }
+      { minimum: 100, title: 'Aurum', css: 'tier-gold', symbol: '🟨' },
+      { minimum: 80, title: 'Rarissimus', css: 'tier-epic', symbol: '🟪' },
+      { minimum: 60, title: 'Rarus', css: 'tier-rare', symbol: '🟦' },
+      { minimum: 40, title: 'Insolitus', css: 'tier-uncommon', symbol: '🟩' },
+      { minimum: 25, title: 'Notus', css: 'tier-familiar', symbol: '⬜' },
+      { minimum: 10, title: 'Communis', css: 'tier-common', symbol: '🟫' },
+      { minimum: 0, title: 'Nullus', css: 'tier-null', symbol: '⬛' }
     ];
 
     const app = document.getElementById('app');
@@ -372,7 +382,7 @@
     const activeEdition = () => QUESTION_BANK.slice(-ROUNDS_PER_GAME).map(q => q.id).join('|');
     function loadDaily() {
       try {
-        const value = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+        const value = JSON.parse(localStorage.getItem(STORAGE_KEY) || localStorage.getItem(PREVIOUS_STORAGE_KEY) || 'null');
         if (!value || value.date !== utcDay() || value.edition !== activeEdition() || !['playing','feedback','finished'].includes(value.phase)) return null;
         if (!Number.isInteger(value.round) || value.round < 0 || value.round > ROUNDS_PER_GAME) return null;
         if (!Array.isArray(value.entries) || value.entries.length > ROUNDS_PER_GAME) return null;
@@ -391,6 +401,7 @@
         const questionIds = state.questions.map(q => q.id);
         const record = { date, edition: activeEdition(), phase, round, entries, deadline, questionIds };
         localStorage.setItem(STORAGE_KEY, JSON.stringify(record));
+        localStorage.removeItem(PREVIOUS_STORAGE_KEY);
         cachedDaily = record;
       } catch { /* Private mode and storage restrictions must not stop the game. */ }
     }
@@ -398,7 +409,7 @@
     function totalScore() { return state.entries.reduce((sum, item) => sum + item.points, 0); }
     function currentQuestion() { return state.questions[state.round]; }
     function coinSVG() {
-      return `<svg class="hero-coin" viewBox="0 0 200 200" role="img" aria-label="GOLD insignia on a Roman-style medallion">
+      return `<svg class="hero-coin" viewBox="0 0 200 200" role="img" aria-label="AURUM medallion">
         <defs><radialGradient id="coin-fill"><stop stop-color="#563075"/><stop offset=".8" stop-color="#2c1843"/><stop offset="1" stop-color="#10091b"/></radialGradient></defs>
         <circle cx="100" cy="100" r="91" fill="url(#coin-fill)" stroke="#b79253" stroke-width="1.5"/>
         <circle cx="100" cy="100" r="82" fill="none" stroke="#b79253" stroke-opacity=".5"/>
@@ -416,8 +427,8 @@
           <ellipse cx="147" cy="85" rx="5" ry="12" transform="rotate(-14 147 85)"/>
           <ellipse cx="134" cy="65" rx="5" ry="11" transform="rotate(-36 134 65)"/>
         </g>
-        <text x="100" y="95" fill="#f6dfa7" text-anchor="middle" style="font-family:'Times New Roman',Times,serif;font-size:44px">G</text>
-        <text x="100" y="117" fill="#d7b675" text-anchor="middle" style="font-family:'Times New Roman',Times,serif;font-size:10px;letter-spacing:3px">GOLD</text>
+        <text x="100" y="95" fill="#f6dfa7" text-anchor="middle" style="font-family:'Times New Roman',Times,serif;font-size:44px">A</text>
+        
         <path d="M78 130h44" stroke="#a98c59" stroke-width="1"/>
       </svg>`;
     }
@@ -429,13 +440,11 @@
       app.innerHTML = `
         <section class="hero">
           ${coinSVG()}
-          <div class="eyebrow">CERTAMEN · EDITIO AUREA</div>
-          <h1>The less obvious,<br><span>the better.</span></h1>
-          <p class="lede">Latin, mythology, history, and more.</p>
+          <h1>AURUM</h1>
           <div class="gold-line"></div>
           <div class="mode-card">
             <div class="mode-tabs" role="tablist" aria-label="Game mode">
-              <button type="button" class="mode-tab" role="tab" data-mode="daily" aria-selected="${chosenMode === 'daily'}">DAILY CHALLENGE</button>
+              <button type="button" class="mode-tab" role="tab" data-mode="daily" aria-selected="${chosenMode === 'daily'}">TODAY</button>
               <button type="button" class="mode-tab" role="tab" data-mode="practice" aria-selected="${chosenMode === 'practice'}">PRACTICE</button>
             </div>
             <p id="mode-description" class="mode-description"></p>
@@ -444,29 +453,29 @@
         </section>
         <div class="metrics" aria-label="Game facts">
           <div class="metric"><strong>VII</strong><span>QUESTIONS</span></div>
-          <div class="metric"><strong>XXV</strong><span>SECONDS EACH</span></div>
-          <div class="metric"><strong>DCC</strong><span>MAXIMUM POINTS</span></div>
+          <div class="metric"><strong>XXV</strong><span>SECONDS</span></div>
+          <div class="metric"><strong>DCC</strong><span>POINTS</span></div>
         </div>
         <section class="rarity-section" aria-label="Answer rarity levels">
-          <div class="eyebrow rarity-heading">RARITY</div>
-          <div class="rarity-legend">${TIERS.filter(t => t.minimum > 0).reverse().map(t => `<span class="rarity-pill ${t.css}" title="${escapeHTML(t.title)}"><span class="rarity-gem" aria-hidden="true"></span><span>${t.label}</span><small>${t.minimum}</small></span>`).join('')}</div>
+          <div class="eyebrow rarity-heading">GRADUS</div>
+          <div class="rarity-legend">${TIERS.filter(t => t.minimum > 0).reverse().map(t => `<span class="rarity-pill ${t.css}" title="${escapeHTML(t.title)}"><span class="rarity-gem" aria-hidden="true"></span><span>${t.title}</span><small>${t.minimum}</small></span>`).join('')}</div>
         </section>`;
       const modeDescription = document.getElementById('mode-description');
       const startButton = document.getElementById('start-button');
       function updateMode() {
         document.querySelectorAll('.mode-tab').forEach(button => button.setAttribute('aria-selected', String(button.dataset.mode === chosenMode)));
         if (chosenMode === 'practice') {
-          modeDescription.textContent = 'Seven questions from earlier editions.';
-          startButton.textContent = 'BEGIN PRACTICE';
+          modeDescription.textContent = 'Earlier questions.';
+          startButton.textContent = 'PLAY';
         } else if (todayDone) {
-          modeDescription.textContent = 'Daily complete.';
-          startButton.textContent = 'VIEW TODAY’S RESULT';
+          modeDescription.textContent = 'Complete.';
+          startButton.textContent = 'RESULTS';
         } else if (todayStarted) {
-          modeDescription.textContent = 'Your daily game is in progress.';
-          startButton.textContent = 'RESUME THE CHALLENGE';
+          modeDescription.textContent = 'In progress.';
+          startButton.textContent = 'RESUME';
         } else {
-          modeDescription.textContent = 'The seven latest questions.';
-          startButton.textContent = 'BEGIN THE CHALLENGE';
+          modeDescription.textContent = '';
+          startButton.textContent = 'PLAY';
         }
       }
       app.querySelectorAll('.mode-tab').forEach(button => button.addEventListener('click', () => { chosenMode = button.dataset.mode; updateMode(); }));
@@ -499,7 +508,7 @@
       render();
     }
     function progressHTML() {
-      return `<div class="game-status"><span>${state.mode === 'daily' ? 'COTIDIANVM' : 'EXERCITATIO'} · ${escapeHTML(state.date)}</span><span>${totalScore()} / 700 PTS</span></div>
+      return `<div class="game-status"><span>${state.mode === 'daily' ? 'COTIDIANVM' : 'EXERCITATIO'}</span><span>${totalScore()} / 700 PTS</span></div>
         <div class="round-dots" aria-label="${state.entries.length} of ${ROUNDS_PER_GAME} questions completed">
         ${Array.from({length: ROUNDS_PER_GAME}, (_, i) => `<span class="round-dot ${i < state.round ? 'complete' : i === state.round ? 'current' : ''}" aria-hidden="true"></span>`).join('')}
         </div>`;
@@ -518,19 +527,18 @@
         <article class="question-card">
           <div class="question-card-top">
             <div class="question-card-headings">
-              <div class="question-overline">${state.mode === 'daily' ? 'COTIDIANVM · DAILY' : 'EXERCITATIO · PRACTICE'} / QVÆSTIO ${String(state.round + 1).padStart(2,'0')} OF 07</div>
+              <div class="question-overline">${state.mode === 'daily' ? 'COTIDIANVM' : 'EXERCITATIO'} · QVÆSTIO ${String(state.round + 1).padStart(2,'0')} / VII</div>
               <span class="question-category">${escapeHTML(q.category)}</span>
             </div>
             <div id="timer-ring" class="timer-ring" role="timer" aria-label="Time remaining"><div class="timer-inner"><div><div id="timer-number" class="timer-number">25</div><div class="timer-label">SECONDS</div></div></div></div>
           </div>
           <div class="question-body">
-            <div class="question-kicker">QUESTION</div>
             <h2 class="question-title">${escapeHTML(q.prompt)}</h2>
             <p class="question-hint">${escapeHTML(q.hint)}</p>
           </div>
           <form id="answer-form" class="question-answer-zone" autocomplete="off" novalidate>
-            <label class="answer-label" for="answer-input">ANSWER · RESPONDE</label>
-            <input id="answer-input" class="answer-input" type="text" maxlength="90" placeholder="Enter an answer" autocomplete="off" autocapitalize="off" spellcheck="false" aria-describedby="answer-error">
+            <label class="answer-label" for="answer-input">ANSWER</label>
+            <input id="answer-input" class="answer-input" type="text" maxlength="90" placeholder="" autocomplete="off" autocapitalize="off" spellcheck="false" aria-describedby="answer-error">
             <p id="answer-error" class="answer-error" role="status" aria-live="polite"></p>
             <div class="game-actions"><button class="primary-button" type="submit">SUBMIT</button><button class="skip-button" id="skip-button" type="button">PASS</button></div>
           </form>
@@ -596,8 +604,7 @@
         <article class="game-card"><div class="reveal">
           <div class="reveal-label">QVÆSTIO ${state.round + 1} / VII</div>
           <div class="award-coin ${tier.css}"><div><div class="award-number">${last.points}</div><div class="award-caption">PUNCTA</div></div></div>
-          <div class="rarity-pill reveal-tier ${tier.css}"><span class="rarity-gem" aria-hidden="true"></span>${tier.label}</div>
-          <h2 class="result-tier ${tier.css}">${escapeHTML(tier.title)}</h2>
+                    <h2 class="result-tier ${tier.css}">${escapeHTML(tier.title)}</h2>
           <p class="result-answer">${last.answer ? `<strong>${escapeHTML(last.answer)}</strong>` : 'No answer'}</p>
           <button class="primary-button" id="next-button" type="button">${state.round === ROUNDS_PER_GAME - 1 ? 'RESULTS' : 'NEXT QUESTION'}</button>
         </div></article></section>`;
@@ -617,7 +624,7 @@
     function shareText() {
       const symbols = state.entries.map(item => tierFor(item.points).symbol).join('');
       const url = window.location.protocol === 'file:' ? '' : window.location.href.split('#')[0].split('?')[0];
-      return `GOLD · CERTAMEN RARITY\n${state.mode === 'daily' ? state.date + ' · Daily' : 'Practice'}\n${totalScore()} / 700\n${symbols}${url ? '\n' + url : ''}`;
+      return `AURUM\n${state.mode === 'daily' ? state.date + ' · Daily' : 'Practice'}\n${totalScore()} / 700\n${symbols}${url ? '\n' + url : ''}`;
     }
     async function copyResult() {
       const text = shareText();
@@ -636,18 +643,16 @@
     }
     function renderResults() {
       const total = totalScore();
-      const high = state.entries.filter(item => item.points >= 60).length;
       app.innerHTML = `<section class="play-wrap">
         <div class="score-head"><div class="eyebrow">FINIS</div>
-          <h1>${state.mode === 'daily' ? 'Daily' : 'Practice'} <span>results.</span></h1>
+          <h1>${state.mode === 'daily' ? 'Daily' : 'Practice'}</h1>
           <div class="score-large">${total}<span> / 700</span></div>
-          <p class="score-desc">${high} rare or better · ${escapeHTML(state.date)}</p>
         </div>
         <article class="game-card">
-          <div class="eyebrow" style="margin-bottom:12px">YOUR SEVEN ANSWERS</div>
+          <div class="eyebrow" style="margin-bottom:12px">ANSWERS</div>
           <div class="result-list">${state.entries.map((entry,i) => {
             const q = state.questions[i];
-            return `<div class="result-row"><span class="index">0${i+1}</span><div><strong>${escapeHTML(entry.answer || 'No answer')}</strong><small>${escapeHTML(q.category)} · <span class="inline-tier ${tierFor(entry.points).css}">${tierFor(entry.points).label}</span></small></div><span class="pts ${tierFor(entry.points).css}">${entry.points} PTS</span></div>`;
+            return `<div class="result-row"><span class="index">0${i+1}</span><div><strong>${escapeHTML(entry.answer || 'No answer')}</strong><small>${escapeHTML(q.category)} · <span class="inline-tier ${tierFor(entry.points).css}">${tierFor(entry.points).title}</span></small></div><span class="pts ${tierFor(entry.points).css}">${entry.points} PTS</span></div>`;
           }).join('')}</div>
           <div class="results-actions">
             <button id="share-button" class="primary-button" type="button">COPY SCORE</button>
@@ -658,7 +663,7 @@
             ${state.questions.map(q => `<div class="answer-bank"><h3>${escapeHTML(q.prompt)}</h3><p>${q.answers.slice().sort((a,b)=>a.points-b.points || a.name.localeCompare(b.name)).map(a=>`${escapeHTML(a.name)} (${a.points})`).join(' · ')}</p></div>`).join('')}
           </details>
         </article>
-        <p style="text-align:center;margin-top:23px"><button id="home-button" class="header-link" type="button">← BACK TO ENTRANCE</button></p>
+        <p style="text-align:center;margin-top:23px"><button id="home-button" class="header-link" type="button">← HOME</button></p>
       </section>`;
       document.getElementById('share-button').addEventListener('click', copyResult);
       document.getElementById('practice-button').addEventListener('click', () => { chosenMode = 'practice'; startGame('practice'); });
